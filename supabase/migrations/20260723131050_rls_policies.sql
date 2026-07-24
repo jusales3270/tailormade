@@ -326,9 +326,21 @@ create policy votos_insert on votos for insert
 create policy encaminhamentos_select on encaminhamentos for select
   using (membro_ativo_org(org_id) and papel_atual(org_id) <> 'convidado');
 
-create policy encaminhamentos_write on encaminhamentos for all
-  using (membro_ativo_org(org_id) and papel_atual(org_id) <> 'convidado')
+-- INSERT separado de UPDATE: SA-18 (criar) não tem guard de papel além de "não
+-- convidado", mas SA-19 (concluir) exige responsável ou admin — "for all" com o mesmo
+-- using() pra tudo deixava qualquer não-convidado concluir encaminhamento alheio.
+create policy encaminhamentos_insert on encaminhamentos for insert
   with check (membro_ativo_org(org_id) and papel_atual(org_id) <> 'convidado');
+
+create policy encaminhamentos_update on encaminhamentos for update
+  using (
+    papel_atual(org_id) = 'admin'
+    or responsavel_id in (select id from membros where user_id = auth.uid())
+  )
+  with check (
+    papel_atual(org_id) = 'admin'
+    or responsavel_id in (select id from membros where user_id = auth.uid())
+  );
 
 -- ─────────────────────────── financeiro ───────────────────────────
 -- tecnico não acessa (master doc §3): só admin/socio em todas as tabelas abaixo.

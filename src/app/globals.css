@@ -1162,3 +1162,132 @@ h3 {
   gap: 3px;
   align-items: center;
 }
+
+/* ───────────────────────────  T-013: Deliberações  ─────────────────────────── */
+
+.delib h3 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  max-width: 70ch;
+}
+.delib__cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.delib__cab em {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--tx3);
+}
+.delib--aberta {
+  box-shadow: var(--sombra-cartao), 0 0 0 1.5px color-mix(in srgb, var(--laranja) 45%, transparent);
+}
+.cap--voto {
+  height: 9px;
+}
+.marcaq {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--tx);
+  border-radius: 2px;
+}
+.votos {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.voto {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--tx3);
+}
+.voto--sim {
+  color: var(--verde);
+}
+.voto--nao {
+  color: var(--vermelho);
+}
+.delib__acao {
+  display: flex;
+  gap: 9px;
+  justify-content: flex-end;
+  border-top: 0.5px solid var(--sep);
+  padding-top: 12px;
+}
+
+/* ───────────────────────────  T-014: Reuniões  ─────────────────────────── */
+
+.reu__cab {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.data {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 11px;
+  background: var(--fill);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.data__m {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--vermelho);
+  letter-spacing: 0.06em;
+}
+.data__d {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.reu__ti h3 {
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+}
+.reu__ti em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--tx3);
+}
+.reu--alerta {
+  box-shadow: var(--sombra-cartao), 0 0 0 1.5px color-mix(in srgb, var(--laranja) 45%, transparent);
+}
+.aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--laranja);
+  background: color-mix(in srgb, var(--laranja) 9%, transparent);
+  padding: 9px 12px;
+  border-radius: 10px;
+}
+.ata {
+  background: var(--fill);
+  border-radius: 11px;
+  padding: 12px 14px;
+}
+.ata__r {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tx3);
+  letter-spacing: 0.04em;
+}
+.ata p {
+  font-size: 13px;
+  color: var(--tx2);
+  margin-top: 5px;
+  line-height: 1.5;
+}

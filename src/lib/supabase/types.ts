@@ -155,26 +155,32 @@ export type Database = {
         Row: {
           corpo: string
           hash: string | null
+          hash_anterior: string | null
           id: string
           publicada_em: string | null
           publicada_por: string | null
           reuniao_id: string
+          seq: number
         }
         Insert: {
           corpo: string
           hash?: string | null
+          hash_anterior?: string | null
           id?: string
           publicada_em?: string | null
           publicada_por?: string | null
           reuniao_id: string
+          seq?: never
         }
         Update: {
           corpo?: string
           hash?: string | null
+          hash_anterior?: string | null
           id?: string
           publicada_em?: string | null
           publicada_por?: string | null
           reuniao_id?: string
+          seq?: never
         }
         Relationships: [
           {
@@ -1084,6 +1090,7 @@ export type Database = {
           justificativa: string | null
           membro_id: string
           peso_pct: number
+          seq: number
           voto: Database["public"]["Enums"]["voto_enum"]
         }
         Insert: {
@@ -1095,6 +1102,7 @@ export type Database = {
           justificativa?: string | null
           membro_id: string
           peso_pct: number
+          seq?: never
           voto: Database["public"]["Enums"]["voto_enum"]
         }
         Update: {
@@ -1106,6 +1114,7 @@ export type Database = {
           justificativa?: string | null
           membro_id?: string
           peso_pct?: number
+          seq?: never
           voto?: Database["public"]["Enums"]["voto_enum"]
         }
         Relationships: [

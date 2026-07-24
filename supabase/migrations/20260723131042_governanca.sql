@@ -35,6 +35,10 @@ create table atas (
   corpo text not null,
   publicada_em timestamptz,
   publicada_por uuid references membros(id),
+  -- seq, não publicada_em: um INSERT multi-linha dá o mesmo now() pra todas as linhas
+  -- (mesmo problema que apareceu em votos.seq — ver voto_cadeia_hash.sql).
+  seq bigint generated always as identity,
+  hash_anterior text,
   hash text
 );
 
@@ -65,6 +69,10 @@ create table votos (
   peso_pct numeric(5,2) not null check (peso_pct >= 0 and peso_pct <= 100),
   justificativa text,
   criado_em timestamptz not null default now(),
+  -- ordenação da cadeia de hash não pode confiar em criado_em: um INSERT multi-linha
+  -- (o próprio seed faz isso) dá o mesmo now() pra todas as linhas da instrução, e
+  -- "order by criado_em" empata. seq é estritamente monotônica por linha inserida.
+  seq bigint generated always as identity,
   hash_anterior text,
   hash text,
   unique (deliberacao_id, membro_id)
