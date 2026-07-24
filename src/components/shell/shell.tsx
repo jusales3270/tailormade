@@ -20,6 +20,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { iniciais } from "@/lib/iniciais";
 
 type ItemNav = { href: string; rot: string; Ico: LucideIcon; cor: string };
 type GrupoNav = { rot: string; itens: ItemNav[] };
@@ -49,15 +50,6 @@ const GRUPOS_NAV: GrupoNav[] = [
     ],
   },
 ];
-
-function iniciais(nome: string) {
-  const primeiras = nome
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "");
-  return primeiras.join("") || "?";
-}
 
 export function Shell({
   nome,

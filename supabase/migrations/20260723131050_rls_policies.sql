@@ -12,12 +12,17 @@
 -- RLS restringe LINHAS, não substitui o GRANT de tabela: sem privilégio SQL básico o
 -- Postgres nem chega a avaliar as policies. `authenticated` precisa do GRANT abaixo em
 -- toda tabela — a policy é que decide quais linhas cada um efetivamente lê ou escreve.
+--
+-- `service_role` também precisa do GRANT, mesmo bypassando RLS: BYPASSRLS só pula a
+-- avaliação de policy, não substitui o privilégio de tabela do Postgres. É o client do
+-- runtime de Safe Actions (T-006) que escreve em auditoria — sem isso, "permission
+-- denied for table auditoria" mesmo como service_role.
 
-grant usage on schema public to authenticated;
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant usage, select on all sequences in schema public to authenticated;
+grant usage on schema public to authenticated, service_role;
+grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
+grant usage, select on all sequences in schema public to authenticated, service_role;
 alter default privileges in schema public
-  grant select, insert, update, delete on tables to authenticated;
+  grant select, insert, update, delete on tables to authenticated, service_role;
 
 -- ─────────────────────────── funções auxiliares ───────────────────────────
 
@@ -181,10 +186,26 @@ create policy mensagens_insert on mensagens for insert
     select id from membros where user_id = auth.uid()
   ));
 
--- mensagem_versoes: só leitura (grava a Safe Action de edição, SA-02); sem update/delete.
+-- SA-02 (mensagem.editar): só o autor edita a própria mensagem. A janela de 15 min é
+-- checada na Safe Action, não aqui — RLS garante o "quem", não o "quando".
+create policy mensagens_update on mensagens for update
+  using (autor_id in (select id from membros where user_id = auth.uid()))
+  with check (autor_id in (select id from membros where user_id = auth.uid()));
+
+-- mensagem_versoes: append-only, sem update/delete.
 create policy mensagem_versoes_select on mensagem_versoes for select
   using (exists (
     select 1 from mensagens msg where msg.id = mensagem_versoes.mensagem_id and pode_ver_canal(msg.canal_id)
+  ));
+
+-- SA-02 grava a versão anterior com a sessão do próprio autor — a policy replica o
+-- mesmo guard (só o autor, só dentro do canal a que ele já tem acesso).
+create policy mensagem_versoes_insert on mensagem_versoes for insert
+  with check (exists (
+    select 1 from mensagens msg
+    where msg.id = mensagem_versoes.mensagem_id
+      and pode_ver_canal(msg.canal_id)
+      and msg.autor_id in (select id from membros where user_id = auth.uid())
   ));
 
 -- registros: append-only (livro de registros não reescreve o passado).
