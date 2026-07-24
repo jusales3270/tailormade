@@ -35,22 +35,16 @@ create table documento_versoes (
   unique (documento_id, versao)
 );
 
+-- Sem provedor externo de assinatura (Autentique foi removida do escopo) — o próprio
+-- membro marca sua linha como assinada/recusada dentro do app. Ver master doc §4, SA-10.
 create table assinaturas (
   id uuid primary key default gen_random_uuid(),
   documento_versao_id uuid not null references documento_versoes(id) on delete cascade,
   membro_id uuid not null references membros(id),
   status status_assinatura not null default 'pendente',
-  provider text,
-  provider_ref text,
   assinado_em timestamptz,
   unique (documento_versao_id, membro_id)
 );
-
-create unique index assinaturas_provider_ref_idx
-  on assinaturas(provider_ref) where provider_ref is not null;
-
-comment on column assinaturas.provider_ref is
-  'Chave de idempotência do webhook de assinatura (SA-11): reentrega não duplica.';
 
 create table documento_grupo_acessos (
   id uuid primary key default gen_random_uuid(),

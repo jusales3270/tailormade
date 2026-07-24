@@ -87,23 +87,23 @@ insert into documento_versoes (id, documento_id, versao, storage_path, hash_sha2
   (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-08'), uuid_generate_v5(uuid_ns_url(), 'doc:DOC-08'), 1, 'documentos/DOC-08/v1.pdf', encode(digest('DOC-08:v1', 'sha256'), 'hex'), uuid_generate_v5(uuid_ns_url(), 'membro:mar'), '2026-07-12'),
   (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-09'), uuid_generate_v5(uuid_ns_url(), 'doc:DOC-09'), 1, 'documentos/DOC-09/v1.pdf', encode(digest('DOC-09:v1', 'sha256'), 'hex'), uuid_generate_v5(uuid_ns_url(), 'membro:teo'), '2026-07-02');
 
-insert into assinaturas (documento_versao_id, membro_id, status, provider, provider_ref, assinado_em) values
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-01'), uuid_generate_v5(uuid_ns_url(), 'membro:ric'), 'assinada', 'autentique', 'seed:DOC-01:ric', '2026-05-23'),
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-01'), uuid_generate_v5(uuid_ns_url(), 'membro:mar'), 'assinada', 'autentique', 'seed:DOC-01:mar', '2026-05-23'),
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-01'), uuid_generate_v5(uuid_ns_url(), 'membro:fel'), 'assinada', 'autentique', 'seed:DOC-01:fel', '2026-05-23'),
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-01'), uuid_generate_v5(uuid_ns_url(), 'membro:ana'), 'assinada', 'autentique', 'seed:DOC-01:ana', '2026-05-23'),
+insert into assinaturas (documento_versao_id, membro_id, status, assinado_em) values
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-01'), uuid_generate_v5(uuid_ns_url(), 'membro:ric'), 'assinada', '2026-05-23'),
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-01'), uuid_generate_v5(uuid_ns_url(), 'membro:mar'), 'assinada', '2026-05-23'),
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-01'), uuid_generate_v5(uuid_ns_url(), 'membro:fel'), 'assinada', '2026-05-23'),
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-01'), uuid_generate_v5(uuid_ns_url(), 'membro:ana'), 'assinada', '2026-05-23'),
 
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-02'), uuid_generate_v5(uuid_ns_url(), 'membro:ric'), 'assinada', 'autentique', 'seed:DOC-02:ric', '2026-05-23'),
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-02'), uuid_generate_v5(uuid_ns_url(), 'membro:mar'), 'assinada', 'autentique', 'seed:DOC-02:mar', '2026-05-23'),
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-02'), uuid_generate_v5(uuid_ns_url(), 'membro:fel'), 'assinada', 'autentique', 'seed:DOC-02:fel', '2026-05-23'),
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-02'), uuid_generate_v5(uuid_ns_url(), 'membro:ana'), 'assinada', 'autentique', 'seed:DOC-02:ana', '2026-05-23'),
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-02'), uuid_generate_v5(uuid_ns_url(), 'membro:teo'), 'assinada', 'autentique', 'seed:DOC-02:teo', '2026-05-23'),
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-02'), uuid_generate_v5(uuid_ns_url(), 'membro:ric'), 'assinada', '2026-05-23'),
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-02'), uuid_generate_v5(uuid_ns_url(), 'membro:mar'), 'assinada', '2026-05-23'),
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-02'), uuid_generate_v5(uuid_ns_url(), 'membro:fel'), 'assinada', '2026-05-23'),
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-02'), uuid_generate_v5(uuid_ns_url(), 'membro:ana'), 'assinada', '2026-05-23'),
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-02'), uuid_generate_v5(uuid_ns_url(), 'membro:teo'), 'assinada', '2026-05-23'),
 
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-05'), uuid_generate_v5(uuid_ns_url(), 'membro:ric'), 'assinada', 'autentique', 'seed:DOC-05:ric', '2026-07-15'),
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-05'), uuid_generate_v5(uuid_ns_url(), 'membro:ric'), 'assinada', '2026-07-15'),
 
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-07'), uuid_generate_v5(uuid_ns_url(), 'membro:ana'), 'assinada', 'autentique', 'seed:DOC-07:ana', '2026-07-20'),
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-07'), uuid_generate_v5(uuid_ns_url(), 'membro:ana'), 'assinada', '2026-07-20'),
 
-  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-09'), uuid_generate_v5(uuid_ns_url(), 'membro:teo'), 'assinada', 'autentique', 'seed:DOC-09:teo', '2026-07-02');
+  (uuid_generate_v5(uuid_ns_url(), 'docv:DOC-09'), uuid_generate_v5(uuid_ns_url(), 'membro:teo'), 'assinada', '2026-07-02');
 
 -- ─────────────────────────── fases e itens (FASES_INI) ───────────────────────────
 -- Datas iguais às do exemplo de Gantt no MASTER.md §2.2.

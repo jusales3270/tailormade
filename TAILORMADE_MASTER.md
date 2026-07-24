@@ -29,7 +29,7 @@ carrega `origem: { tabela, id }`. Se não há registro, não há afirmação.
 | Banco / Auth / Storage / Realtime | Supabase | RLS resolve o controle de acesso no banco, não na aplicação |
 | Mutações | `next-safe-action` + Zod | Contrato tipado por ação, validação e auditoria automáticas |
 | Tempo real | Supabase Realtime | Mensagens, votos e movimentos |
-| Assinatura | Autentique (webhook) | Já em uso no seu stack |
+| Assinatura | Nenhum provedor externo | Removida do escopo — o próprio membro marca a assinatura no app (SA-10) |
 | Jobs | Supabase `pg_cron` | Encerrar deliberações no prazo, recalcular fôlego de caixa |
 | Narração | Claude Haiku 4.5 | Recebe fatos prontos, devolve prosa. Sem acesso a banco, sem tool calling |
 
@@ -135,8 +135,7 @@ documentos           id, org_id, codigo, nome, grupo, responsavel_id,
 documento_versoes    id, documento_id, versao int, storage_path,
                      hash_sha256, enviado_por, enviado_em
 assinaturas          id, documento_versao_id, membro_id,
-                     status ('pendente'|'assinada'|'recusada'),
-                     provider, provider_ref, assinado_em
+                     status ('pendente'|'assinada'|'recusada'), assinado_em
 documento_grupo_acessos  id, membro_id, grupo
 ```
 
@@ -270,8 +269,8 @@ automática em `auditoria`. Nada de `supabase.from().update()` solto em componen
 | SA-07 | `fase.reatribuir` | Só `admin` |
 | SA-08 | `documento.criar` | Aceita criação com `status='ausente'` |
 | SA-09 | `documento_versao.enviar` | Calcula SHA-256, incrementa versão, nunca sobrescreve |
-| SA-10 | `documento.solicitar_assinatura` | Dispara Autentique, grava `provider_ref` |
-| SA-11 | `assinatura.registrar_retorno` | **Idempotente** por `provider_ref`. Webhook reentrega |
+| SA-10 | `assinatura.marcar` | Sem provedor externo (Autentique removida) — só o próprio `membro_id` da linha marca `assinada`/`recusada` |
+| ~~SA-11~~ | ~~`assinatura.registrar_retorno`~~ | Removida junto com a Autentique — sem webhook, não há retorno a idempotência a tratar |
 | SA-12 | `deliberacao.abrir` | Snapshot dos pesos, valida quórum ≤ 100, `encerra_em` futuro |
 | SA-13 | `voto.registrar` | Um por membro, só `socio`, append-only, recalcula status |
 | SA-14 | `deliberacao.encerrar` | Por cron no prazo ou por quórum atingido |
@@ -368,7 +367,7 @@ Cada tarefa entrega algo verificável. Não pule a ordem: T-006 e T-007 são a e
 | T-009 | Debates + Realtime | Duas abas, mensagem aparece nas duas |
 | T-010 | Livro de registros | Editar a mensagem original não altera o registro |
 | T-011 | Documentos, storage, versionamento | Reenvio gera v2, hash diferente |
-| T-012 | Autentique + webhook idempotente | Reentrega do webhook não duplica assinatura |
+| ~~T-012~~ | ~~Autentique + webhook idempotente~~ — **removida**, sem provedor externo (SA-10 já cobre a marcação manual, sem fase própria) | — |
 | T-013 | Deliberações, votos, cadeia de hash | `UPDATE` em voto é rejeitado pela policy |
 | T-014 | Reuniões, pauta, atas, encaminhamentos | Ata sem responsável não publica |
 | T-015 | Financeiro, alçadas, aportes | Aprovar sem comprovante é bloqueado |
@@ -390,8 +389,9 @@ Cinco. Sem elas o Claude Code vai escolher por você.
 
 1. **Ponte com WhatsApp.** Espelhar via Evolution API durante a transição, ou cortar
    seco? Espelhar costuma matar a migração — ninguém sai de onde já está.
-2. **Provider de assinatura.** Autentique, Clicksign ou ZapSign. Define o formato de
-   `provider_ref` e o contrato do webhook em T-012.
+2. ~~**Provider de assinatura.**~~ **Resolvido (revisado):** nenhum. Sem provedor externo
+   — a assinatura é marcada manualmente no app pelo próprio membro (SA-10). T-012 (que
+   seria o webhook) foi removida da sequência.
 3. ~~**Externos.**~~ **Resolvido:** papel `convidado` com login via Supabase Auth,
    whitelist explícita por RLS (grupo de documentos e canal). Sem token paralelo.
 4. ~~**Alçada financeira.**~~ **Resolvido:** sem limite de valor — todo `movimento.lancar`

@@ -118,8 +118,6 @@ export type Database = {
           documento_versao_id: string
           id: string
           membro_id: string
-          provider: string | null
-          provider_ref: string | null
           status: Database["public"]["Enums"]["status_assinatura"]
         }
         Insert: {
@@ -127,8 +125,6 @@ export type Database = {
           documento_versao_id: string
           id?: string
           membro_id: string
-          provider?: string | null
-          provider_ref?: string | null
           status?: Database["public"]["Enums"]["status_assinatura"]
         }
         Update: {
@@ -136,8 +132,6 @@ export type Database = {
           documento_versao_id?: string
           id?: string
           membro_id?: string
-          provider?: string | null
-          provider_ref?: string | null
           status?: Database["public"]["Enums"]["status_assinatura"]
         }
         Relationships: [
