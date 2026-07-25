@@ -649,6 +649,30 @@ h3 {
   color: var(--tx3);
   padding: 6px 0;
 }
+.linha--alta {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.ava--gr {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  font-size: 14px;
+}
+.nota {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--azul);
+  margin-top: 4px;
+}
+.parte {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
 .marca {
   color: var(--tx3);
   display: flex;
@@ -1289,5 +1313,89 @@ h3 {
   font-size: 13px;
   color: var(--tx2);
   margin-top: 5px;
+  line-height: 1.5;
+}
+
+/* ───────────────────────────  T-015: Financeiro  ─────────────────────────── */
+.valor {
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 14px;
+}
+.met {
+  background: var(--cart);
+  border-radius: 14px;
+  box-shadow: var(--sombra-cartao);
+  padding: 14px 16px;
+}
+.met__r {
+  font-size: 12px;
+  color: var(--tx2);
+  font-weight: 500;
+}
+.met__v {
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 5px 0 2px;
+  font-variant-numeric: tabular-nums;
+}
+.met__n {
+  font-size: 11.5px;
+  color: var(--tx3);
+}
+.aporte {
+  padding: 8px 0;
+}
+.aporte__t {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13.5px;
+  margin-bottom: 6px;
+}
+.aporte__t em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--tx3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ───────────────────────────  T-016: Sócios  ─────────────────────────── */
+.capital {
+  display: flex;
+  height: 34px;
+  border-radius: 9px;
+  overflow: hidden;
+  gap: 2px;
+}
+.capital__f {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #fff;
+}
+.capital__f.k0 {
+  background: var(--azul);
+}
+.capital__f.k1 {
+  background: var(--indigo);
+}
+.capital__f.k2 {
+  background: var(--verde);
+}
+.capital__f.k3 {
+  background: var(--laranja);
+}
+.obs {
+  font-size: 12.5px;
+  color: var(--tx2);
   line-height: 1.5;
 }

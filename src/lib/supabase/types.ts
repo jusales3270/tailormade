@@ -334,6 +334,7 @@ export type Database = {
           id: string
           org_id: string
           origem_mensagem_id: string | null
+          participacao_aplicada_em: string | null
           quorum_pct: number
           status: Database["public"]["Enums"]["status_deliberacao"]
           titulo: string
@@ -347,6 +348,7 @@ export type Database = {
           id?: string
           org_id: string
           origem_mensagem_id?: string | null
+          participacao_aplicada_em?: string | null
           quorum_pct: number
           status?: Database["public"]["Enums"]["status_deliberacao"]
           titulo: string
@@ -360,6 +362,7 @@ export type Database = {
           id?: string
           org_id?: string
           origem_mensagem_id?: string | null
+          participacao_aplicada_em?: string | null
           quorum_pct?: number
           status?: Database["public"]["Enums"]["status_deliberacao"]
           titulo?: string

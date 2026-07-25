@@ -18,9 +18,16 @@ import {
   Sun,
   Moon,
   X,
+  AlertTriangle,
+  Bell,
+  Clock,
+  ShieldCheck,
+  ArrowRight,
   type LucideIcon,
 } from "lucide-react";
 import { iniciais } from "@/lib/iniciais";
+import { formatarFatos } from "@/lib/copiloto/formatar-fatos";
+import type { Leitura, Severidade } from "@/lib/regras/tipos";
 
 type ItemNav = { href: string; rot: string; Ico: LucideIcon; cor: string };
 type GrupoNav = { rot: string; itens: ItemNav[] };
@@ -51,13 +58,35 @@ const GRUPOS_NAV: GrupoNav[] = [
   },
 ];
 
+const ROTA_POR_TABELA: Record<string, string> = {
+  fases: "/trilha",
+  fase_itens: "/trilha",
+  documentos: "/cofre",
+  deliberacoes: "/deliberacoes",
+  reunioes: "/reunioes",
+  aportes: "/financeiro",
+  movimentos: "/financeiro",
+  sugestoes: "/debates",
+};
+
+const CONFIG_SEVERIDADE: Record<Severidade, { cor: string; Ico: LucideIcon }> = {
+  risco: { cor: "vermelho", Ico: AlertTriangle },
+  acao: { cor: "laranja", Ico: Bell },
+  atencao: { cor: "azul", Ico: Clock },
+  info: { cor: "verde", Ico: ShieldCheck },
+};
+
 export function Shell({
   nome,
   papel,
+  leituras,
+  resumo,
   children,
 }: {
   nome: string;
   papel: string | null;
+  leituras: Leitura[];
+  resumo: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -135,10 +164,35 @@ export function Shell({
                   <X size={14} />
                 </button>
               </div>
-              <p className="insp__resumo">
-                O motor de regras ainda não foi construído (T-007) — por enquanto não há leituras para
-                mostrar.
-              </p>
+              <p className="insp__resumo">{resumo}</p>
+              {leituras.map((l) => {
+                const { cor, Ico } = CONFIG_SEVERIDADE[l.severidade];
+                const rota = ROTA_POR_TABELA[l.origem.tabela];
+                const conteudo = (
+                  <>
+                    <span className={`leitura__ic c-${cor}`}>
+                      <Ico size={13} strokeWidth={2.3} />
+                    </span>
+                    <span className="leitura__c">
+                      <strong>{l.titulo}</strong>
+                      <p>{formatarFatos(l)}</p>
+                      <em>
+                        origem: {l.origem.tabela} <ArrowRight size={10} />
+                      </em>
+                    </span>
+                  </>
+                );
+                const chave = `${l.regra}-${l.origem.id}`;
+                return rota ? (
+                  <Link key={chave} href={rota} className="leitura">
+                    {conteudo}
+                  </Link>
+                ) : (
+                  <div key={chave} className="leitura">
+                    {conteudo}
+                  </div>
+                );
+              })}
               <p className="insp__pe">
                 O copiloto só afirma o que consegue apontar em um registro do painel. Sem registro, ele não
                 conclui.
