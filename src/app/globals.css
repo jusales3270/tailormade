@@ -1524,91 +1524,7 @@ h3 {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: radial-gradient(120% 100% at 50% 0%, #20203a 0%, #0c0c16 55%, #010103 100%);
-}
-
-.tela-auth__vinheta {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(60% 55% at 50% 42%, transparent 0%, rgba(0, 0, 0, 0.55) 100%);
-  pointer-events: none;
-}
-
-/* warp: "tunel" 3D de grade + feixes subindo, feito só com transforms/perspective —
-   sem lib de animação, pra não puxar Tailwind/motion pro projeto (que usa CSS puro). */
-.warp {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  perspective: 280px;
-  pointer-events: none;
-}
-.warp__cena {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-}
-.warp__face {
-  position: absolute;
-  width: 220vmax;
-  height: 220vmax;
-  overflow: hidden;
-  background-image: linear-gradient(rgba(120, 140, 255, 0.14) 0 1px, transparent 1px 54px),
-    linear-gradient(90deg, rgba(120, 140, 255, 0.14) 0 1px, transparent 1px 54px);
-  background-size: 54px 54px;
-  -webkit-mask-image: radial-gradient(65% 65% at 50% 0%, #000 0%, transparent 75%);
-  mask-image: radial-gradient(65% 65% at 50% 0%, #000 0%, transparent 75%);
-}
-.warp__face--cima {
-  top: 0;
-  left: 50%;
-  margin-left: -110vmax;
-  transform-origin: 50% 0%;
-  transform: rotateX(-90deg);
-}
-.warp__face--baixo {
-  top: 100%;
-  left: 50%;
-  margin-left: -110vmax;
-  transform-origin: 50% 0%;
-  transform: rotateX(-90deg);
-}
-.warp__face--esquerda {
-  left: 0;
-  top: 0;
-  transform-origin: 0% 0%;
-  transform: rotate(90deg) rotateX(-90deg);
-}
-.warp__face--direita {
-  right: 0;
-  top: 0;
-  transform-origin: 100% 0%;
-  transform: rotate(-90deg) rotateX(-90deg);
-}
-.warp__feixe {
-  position: absolute;
-  top: 0;
-  width: 3%;
-  aspect-ratio: 1 / 9;
-  border-radius: 2px;
-  transform: translate(-50%, 240%);
-  animation-name: warp-subir;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-@keyframes warp-subir {
-  from {
-    transform: translate(-50%, 240%);
-  }
-  to {
-    transform: translate(-50%, -140%);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .warp__feixe {
-    animation: none;
-    opacity: 0.5;
-  }
+  background: var(--bg);
 }
 
 /* cartão de auth (login / definir-senha) — estilo macOS: painel translúcido central */
@@ -1622,12 +1538,10 @@ h3 {
   align-items: center;
   gap: 6px;
   padding: 40px 34px 34px;
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 0.5px solid rgba(255, 255, 255, 0.4);
+  background: var(--cart);
+  border: 0.5px solid var(--sep);
   border-radius: 22px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 2px 0 rgba(255, 255, 255, 0.5) inset;
+  box-shadow: var(--sombra-cartao);
   animation: auth-card-entra 0.5s cubic-bezier(0.2, 0.85, 0.3, 1) both;
 }
 @keyframes auth-card-entra {
@@ -1705,12 +1619,12 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(120% 100% at 50% 0%, #20203a 0%, #0c0c16 55%, #010103 100%);
+  background: var(--bg);
 }
 .auth-transicao__logo {
   height: auto;
   animation: auth-logo-zoom 1.5s cubic-bezier(0.22, 0.9, 0.28, 1) both;
-  filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.12));
 }
 @keyframes auth-logo-zoom {
   0% {

@@ -1,27 +1,86 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { Hash, Paperclip, ArrowUp, Bookmark, Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Hash, Paperclip, ArrowUp, Bookmark, Pencil, Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { createClient } from "@/lib/supabase/client";
 import { iniciais } from "@/lib/iniciais";
 import { publicarMensagem } from "@/lib/safe-actions/mensagem-publicar";
 import { editarMensagem } from "@/lib/safe-actions/mensagem-editar";
 import { guardarNoLivro } from "@/lib/safe-actions/mensagem-guardar-no-livro";
+import { criarCanal } from "@/lib/safe-actions/canal-criar";
 import type { CanalUI, MembroAvatarUI, MensagemUI } from "./tipos";
 
 const JANELA_EDICAO_MS = 15 * 60 * 1000;
+
+function NovoCanalForm({ orgId }: { orgId: string }) {
+  const router = useRouter();
+  const [aberto, setAberto] = useState(false);
+  const [nome, setNome] = useState("");
+
+  const criar = useAction(criarCanal, {
+    onSuccess: () => {
+      router.refresh();
+      setNome("");
+      setAberto(false);
+    },
+  });
+
+  function enviar(e: FormEvent) {
+    e.preventDefault();
+    if (!nome.trim()) return;
+    criar.execute({ orgId, nome: nome.trim() });
+  }
+
+  if (!aberto) {
+    return (
+      <button type="button" className="item" onClick={() => setAberto(true)}>
+        <span className="item__ic c-cinza">
+          <Plus size={14} strokeWidth={2.4} />
+        </span>
+        <span className="item__r">Novo canal</span>
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={enviar} style={{ display: "flex", flexDirection: "column", gap: 6, padding: "4px 10px" }}>
+      <input
+        autoFocus
+        placeholder="nome do canal"
+        value={nome}
+        onChange={(e) => setNome(e.target.value)}
+        style={{ background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13 }}
+      />
+      {criar.result.serverError && <span className="min c-vermelho">{criar.result.serverError}</span>}
+      <div style={{ display: "flex", gap: 6 }}>
+        <button type="submit" className="bt bt--azul bt--min" disabled={criar.isPending}>
+          Criar
+        </button>
+        <button type="button" className="bt bt--claro bt--min" onClick={() => setAberto(false)}>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  );
+}
 
 export function DebatesClient({
   canais,
   membros,
   meuMembroId,
+  orgId,
+  souAdmin,
 }: {
   canais: CanalUI[];
   membros: MembroAvatarUI[];
   meuMembroId: string | null;
+  orgId: string | null;
+  souAdmin: boolean;
 }) {
-  const [canalAtivo, setCanalAtivo] = useState<CanalUI | null>(canais[0] ?? null);
+  const [canalSelecionadoId, setCanalSelecionadoId] = useState<string | null>(null);
+  const canalAtivo = canais.find((c) => c.id === canalSelecionadoId) ?? canais[0] ?? null;
   const [mensagens, setMensagens] = useState<MensagemUI[]>([]);
   const [rascunho, setRascunho] = useState("");
   const [editando, setEditando] = useState<{ id: string; texto: string } | null>(null);
@@ -142,7 +201,15 @@ export function DebatesClient({
   }
 
   if (!canalAtivo) {
-    return <p className="cart">Nenhum canal disponível.</p>;
+    return (
+      <div className="conv">
+        <div className="conv__lista">
+          <div className="lat__gt">Canais</div>
+          <p className="lista__vazio">Nenhum canal ainda.</p>
+          {souAdmin && orgId && <NovoCanalForm orgId={orgId} />}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -153,7 +220,7 @@ export function DebatesClient({
           <button
             key={c.id}
             className={`item ${canalAtivo.id === c.id ? "item--on" : ""}`}
-            onClick={() => setCanalAtivo(c)}
+            onClick={() => setCanalSelecionadoId(c.id)}
           >
             <span className="item__ic c-cinza">
               <Hash size={13} strokeWidth={2.4} />
@@ -161,6 +228,7 @@ export function DebatesClient({
             <span className="item__r">{c.nome}</span>
           </button>
         ))}
+        {souAdmin && orgId && <NovoCanalForm orgId={orgId} />}
         <p className="conv__nota">Um canal por assunto. Se não cabe em nenhum, ainda não é assunto.</p>
       </div>
 

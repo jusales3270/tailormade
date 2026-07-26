@@ -7,7 +7,12 @@ export default async function DebatesPage() {
 
   const [{ data: canais }, { data: membro }] = await Promise.all([
     supabase.from("canais").select("id, slug, nome, descricao").eq("arquivado", false).order("slug"),
-    supabase.from("membros").select("id, org_id").eq("user_id", sessao!.claims.sub).eq("ativo", true).maybeSingle(),
+    supabase
+      .from("membros")
+      .select("id, org_id, papel")
+      .eq("user_id", sessao!.claims.sub)
+      .eq("ativo", true)
+      .maybeSingle(),
   ]);
 
   const { data: membrosOrg } = membro
@@ -19,6 +24,8 @@ export default async function DebatesPage() {
       canais={canais ?? []}
       membros={membrosOrg ?? []}
       meuMembroId={membro?.id ?? null}
+      orgId={membro?.org_id ?? null}
+      souAdmin={membro?.papel === "admin"}
     />
   );
 }

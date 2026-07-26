@@ -6,7 +6,6 @@ import { registrarAuditoria } from "./auditoria";
 
 const schema = z.object({
   orgId: z.string().uuid(),
-  codigo: z.string().trim().min(1),
   nome: z.string().trim().min(1),
   grupo: z.string().trim().min(1),
   critico: z.boolean().default(false),
@@ -36,11 +35,17 @@ export const criarDocumento = actionClient
       throw new Error("Só admin ou sócio criam documentos.");
     }
 
+    const { count } = await supabase
+      .from("documentos")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", parsedInput.orgId);
+    const codigo = `DOC-${String((count ?? 0) + 1).padStart(2, "0")}`;
+
     const { data: documento, error } = await supabase
       .from("documentos")
       .insert({
         org_id: parsedInput.orgId,
-        codigo: parsedInput.codigo,
+        codigo,
         nome: parsedInput.nome,
         grupo: parsedInput.grupo,
         critico: parsedInput.critico,
@@ -60,7 +65,7 @@ export const criarDocumento = actionClient
       entidade: metadata.entidade,
       entidadeId: documento.id,
       antes: null,
-      depois: { codigo: parsedInput.codigo, nome: parsedInput.nome, grupo: parsedInput.grupo },
+      depois: { codigo, nome: parsedInput.nome, grupo: parsedInput.grupo },
     });
 
     return { id: documento.id };

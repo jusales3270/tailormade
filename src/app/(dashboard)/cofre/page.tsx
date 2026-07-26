@@ -5,6 +5,14 @@ import type { DocumentoUI } from "./tipos";
 
 export default async function CofrePage() {
   const supabase = await createClient();
+  const { data: sessao } = await supabase.auth.getClaims();
+
+  const { data: membro } = await supabase
+    .from("membros")
+    .select("id, org_id, papel")
+    .eq("user_id", sessao!.claims.sub)
+    .eq("ativo", true)
+    .maybeSingle();
 
   const { data: documentos } = await supabase
     .from("documentos")
@@ -40,7 +48,11 @@ export default async function CofrePage() {
         t="Documentos"
         s="Versão, responsável e hash de cada arquivo. O que não existe continua na lista, marcado em vermelho."
       />
-      <CofreClient documentos={documentosUI} />
+      <CofreClient
+        documentos={documentosUI}
+        orgId={membro?.org_id ?? null}
+        podeGerir={membro?.papel === "admin" || membro?.papel === "socio"}
+      />
     </>
   );
 }
