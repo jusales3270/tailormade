@@ -13,18 +13,31 @@ export const MENSAGEM_FALHA =
 // master doc §5: "recebe fatos prontos, devolve prosa. Sem acesso a banco, sem tool
 // calling". Uma única chamada de texto, sem ferramentas — e se o array vier vazio, nem
 // chama o modelo: "não preenche o silêncio" é uma garantia de código, não de prompt.
+// Timeout curto porque narrar() está no caminho crítico do carregamento do painel
+// inteiro (DashboardLayout dá await nela antes de renderizar qualquer coisa) — uma
+// API lenta ou fora do ar não pode travar a navegação de todo mundo indefinidamente.
+const TIMEOUT_MS = 6000;
+
 export async function narrar(leituras: Leitura[]): Promise<string> {
   if (leituras.length === 0) return MENSAGEM_VAZIA;
 
   const { system, user } = montarPrompt(leituras);
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const resposta = await client.messages.create({
-    model: MODELO,
-    max_tokens: 300,
-    system,
-    messages: [{ role: "user", content: user }],
-  });
+  let resposta: Anthropic.Message;
+  try {
+    resposta = await client.messages.create(
+      {
+        model: MODELO,
+        max_tokens: 300,
+        system,
+        messages: [{ role: "user", content: user }],
+      },
+      { timeout: TIMEOUT_MS },
+    );
+  } catch {
+    return MENSAGEM_FALHA;
+  }
 
   const texto = resposta.content
     .filter((bloco): bloco is Anthropic.TextBlock => bloco.type === "text")

@@ -48,8 +48,8 @@ export function LoginForm() {
         <Image
           src="/logo.png"
           alt="Tailor Made"
-          width={130}
-          height={72}
+          width={280}
+          height={154}
           priority
           className="auth-transicao__logo"
         />

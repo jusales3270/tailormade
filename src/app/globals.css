@@ -1622,21 +1622,22 @@ h3 {
   background: var(--bg);
 }
 .auth-transicao__logo {
+  width: min(280px, 62vw);
   height: auto;
   animation: auth-logo-zoom 1.5s cubic-bezier(0.22, 0.9, 0.28, 1) both;
-  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.12));
+  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.16));
 }
 @keyframes auth-logo-zoom {
   0% {
     opacity: 0;
-    transform: scale(0.35);
+    transform: scale(0.15);
   }
-  55% {
+  50% {
     opacity: 1;
-    transform: scale(1.08);
+    transform: scale(1.22);
   }
-  75% {
-    transform: scale(0.98);
+  72% {
+    transform: scale(0.94);
   }
   100% {
     opacity: 1;
@@ -1652,5 +1653,33 @@ h3 {
 @media (max-width: 480px) {
   .auth-card {
     padding: 32px 24px 28px;
+  }
+}
+
+/* loading.tsx do painel — some tela em branco pós-login/navegação enquanto o server
+   component busca dados; sem isso, a transição do login fica "parada" na logo. */
+.carregando-painel {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+.carregando-painel__giro {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid var(--fill2);
+  border-top-color: var(--azul);
+  animation: carregando-girar 0.7s linear infinite;
+}
+@keyframes carregando-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carregando-painel__giro {
+    animation-duration: 1.6s;
   }
 }
