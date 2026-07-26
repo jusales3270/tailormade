@@ -14,6 +14,24 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/login");
   }
 
+  // user_metadata (nome de exibição pessoal e avatar) não vem nas claims do JWT — só
+  // getUser() traz. É perfil individual, por isso fica fora de `membros` (dado de org).
+  const { data: usuarioData } = await supabase.auth.getUser();
+  const metadata = (usuarioData?.user?.user_metadata ?? {}) as {
+    nome_exibicao?: string;
+    avatar_path?: string;
+  };
+  const nomeExibicao = metadata.nome_exibicao ?? null;
+  const email = usuarioData?.user?.email ?? sessao.claims.email ?? "—";
+
+  let avatarUrl: string | null = null;
+  if (metadata.avatar_path) {
+    const { data: assinado } = await supabase.storage
+      .from("avatars")
+      .createSignedUrl(metadata.avatar_path, 3600);
+    avatarUrl = assinado?.signedUrl ?? null;
+  }
+
   const { data: membro } = await supabase
     .from("membros")
     .select("nome, papel, org_id")
@@ -23,7 +41,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!membro) {
     return (
-      <Shell nome={sessao.claims.email ?? "—"} papel={null} leituras={[]} resumo="">
+      <Shell
+        nome={email}
+        papel={null}
+        leituras={[]}
+        resumo=""
+        email={email}
+        nomeExibicao={nomeExibicao}
+        avatarUrl={avatarUrl}
+      >
         {children}
       </Shell>
     );
@@ -126,7 +152,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const resumo = await narrar(leituras);
 
   return (
-    <Shell nome={membro.nome} papel={membro.papel} leituras={leituras} resumo={resumo}>
+    <Shell
+      nome={membro.nome}
+      papel={membro.papel}
+      leituras={leituras}
+      resumo={resumo}
+      email={email}
+      nomeExibicao={nomeExibicao}
+      avatarUrl={avatarUrl}
+    >
       {children}
     </Shell>
   );

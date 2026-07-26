@@ -1399,3 +1399,344 @@ h3 {
   color: var(--tx2);
   line-height: 1.5;
 }
+
+/* ───────────────────────────  T-018: Sidebar (sair/config) e Configurações  ─────────────────────────── */
+
+.lat__rodape {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 0.5px solid var(--sep);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.item--sair:hover {
+  background: color-mix(in srgb, var(--vermelho) 10%, transparent);
+}
+
+.ava-bt {
+  border-radius: 50%;
+  display: inline-flex;
+  transition: 0.14s;
+}
+.ava-bt:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+.ava--foto {
+  object-fit: cover;
+}
+
+.modal__fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+.modal {
+  width: 380px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  gap: 18px;
+}
+.modal__avatar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.modal__avatar-bt {
+  position: relative;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.modal__avatar-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+.modal__avatar-bt .ava--gr {
+  width: 56px;
+  height: 56px;
+  font-size: 18px;
+}
+.modal__avatar-sobre {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: 0.14s;
+}
+.modal__avatar-bt:hover .modal__avatar-sobre {
+  opacity: 1;
+}
+.modal__sep {
+  height: 0.5px;
+  background: var(--sep);
+  margin: 2px 0;
+}
+.modal__acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+.campo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--tx2);
+}
+.campo-form input {
+  background: var(--fill);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 13.5px;
+  color: var(--tx);
+  font-weight: 400;
+}
+.campo-form input::placeholder {
+  color: var(--tx3);
+}
+
+/* ───────────────────────────  T-018: Auth (login / definir-senha)  ─────────────────────────── */
+
+.tela-auth {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(120% 100% at 50% 0%, #20203a 0%, #0c0c16 55%, #010103 100%);
+}
+
+.tela-auth__vinheta {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 55% at 50% 42%, transparent 0%, rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+}
+
+/* warp: "tunel" 3D de grade + feixes subindo, feito só com transforms/perspective —
+   sem lib de animação, pra não puxar Tailwind/motion pro projeto (que usa CSS puro). */
+.warp {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  perspective: 280px;
+  pointer-events: none;
+}
+.warp__cena {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.warp__face {
+  position: absolute;
+  width: 220vmax;
+  height: 220vmax;
+  overflow: hidden;
+  background-image: linear-gradient(rgba(120, 140, 255, 0.14) 0 1px, transparent 1px 54px),
+    linear-gradient(90deg, rgba(120, 140, 255, 0.14) 0 1px, transparent 1px 54px);
+  background-size: 54px 54px;
+  -webkit-mask-image: radial-gradient(65% 65% at 50% 0%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(65% 65% at 50% 0%, #000 0%, transparent 75%);
+}
+.warp__face--cima {
+  top: 0;
+  left: 50%;
+  margin-left: -110vmax;
+  transform-origin: 50% 0%;
+  transform: rotateX(-90deg);
+}
+.warp__face--baixo {
+  top: 100%;
+  left: 50%;
+  margin-left: -110vmax;
+  transform-origin: 50% 0%;
+  transform: rotateX(-90deg);
+}
+.warp__face--esquerda {
+  left: 0;
+  top: 0;
+  transform-origin: 0% 0%;
+  transform: rotate(90deg) rotateX(-90deg);
+}
+.warp__face--direita {
+  right: 0;
+  top: 0;
+  transform-origin: 100% 0%;
+  transform: rotate(-90deg) rotateX(-90deg);
+}
+.warp__feixe {
+  position: absolute;
+  top: 0;
+  width: 3%;
+  aspect-ratio: 1 / 9;
+  border-radius: 2px;
+  transform: translate(-50%, 240%);
+  animation-name: warp-subir;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes warp-subir {
+  from {
+    transform: translate(-50%, 240%);
+  }
+  to {
+    transform: translate(-50%, -140%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .warp__feixe {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* cartão de auth (login / definir-senha) — estilo macOS: painel translúcido central */
+.auth-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 372px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 40px 34px 34px;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 22px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 2px 0 rgba(255, 255, 255, 0.5) inset;
+  animation: auth-card-entra 0.5s cubic-bezier(0.2, 0.85, 0.3, 1) both;
+}
+@keyframes auth-card-entra {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.auth-card__marca {
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.12));
+}
+.auth-card__logo {
+  height: auto;
+}
+.auth-card__titulo {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--tx);
+}
+.auth-card__sub {
+  font-size: 13px;
+  color: var(--tx2);
+  text-align: center;
+  line-height: 1.5;
+  margin: 2px 0 22px;
+  max-width: 30ch;
+}
+
+.auth-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.campo-form--auth {
+  gap: 5px;
+}
+.campo-form--auth input {
+  background: rgba(120, 120, 128, 0.09);
+  border: 0.5px solid rgba(60, 60, 67, 0.12);
+  padding: 11px 13px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.campo-form--auth input:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--azul) 55%, transparent);
+  outline-offset: 1px;
+}
+.auth-bt {
+  width: 100%;
+  justify-content: center;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 6px;
+}
+.auth-erro {
+  font-size: 12.5px;
+  color: var(--vermelho);
+  background: color-mix(in srgb, var(--vermelho) 10%, transparent);
+  padding: 8px 11px;
+  border-radius: 8px;
+}
+
+/* transição pós-login: logo em zoom-in cobrindo a tela inteira antes de abrir o painel */
+.auth-transicao {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(120% 100% at 50% 0%, #20203a 0%, #0c0c16 55%, #010103 100%);
+}
+.auth-transicao__logo {
+  height: auto;
+  animation: auth-logo-zoom 1.5s cubic-bezier(0.22, 0.9, 0.28, 1) both;
+  filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.5));
+}
+@keyframes auth-logo-zoom {
+  0% {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  75% {
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-transicao__logo {
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 32px 24px 28px;
+  }
+}

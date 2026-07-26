@@ -38,8 +38,8 @@ export function DefinirSenhaForm() {
   }
 
   return (
-    <form onSubmit={salvar} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <label>
+    <form onSubmit={salvar} className="auth-form">
+      <label className="campo-form campo-form--auth">
         Nova senha
         <input
           type="password"
@@ -47,9 +47,10 @@ export function DefinirSenhaForm() {
           onChange={(e) => setSenha(e.target.value)}
           required
           autoComplete="new-password"
+          placeholder="••••••••"
         />
       </label>
-      <label>
+      <label className="campo-form campo-form--auth">
         Confirmar senha
         <input
           type="password"
@@ -57,10 +58,11 @@ export function DefinirSenhaForm() {
           onChange={(e) => setConfirmacao(e.target.value)}
           required
           autoComplete="new-password"
+          placeholder="••••••••"
         />
       </label>
-      {erro && <p style={{ color: "crimson" }}>{erro}</p>}
-      <button type="submit" disabled={carregando}>
+      {erro && <p className="auth-erro">{erro}</p>}
+      <button type="submit" className="bt bt--azul auth-bt" disabled={carregando}>
         {carregando ? "Salvando…" : "Salvar e entrar"}
       </button>
     </form>

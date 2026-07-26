@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   LayoutGrid,
@@ -23,10 +23,14 @@ import {
   Clock,
   ShieldCheck,
   ArrowRight,
+  Settings,
+  LogOut,
   type LucideIcon,
 } from "lucide-react";
 import { iniciais } from "@/lib/iniciais";
 import { formatarFatos } from "@/lib/copiloto/formatar-fatos";
+import { createClient } from "@/lib/supabase/client";
+import { ConfiguracoesModal } from "./configuracoes-modal";
 import type { Leitura, Severidade } from "@/lib/regras/tipos";
 
 type ItemNav = { href: string; rot: string; Ico: LucideIcon; cor: string };
@@ -81,23 +85,39 @@ export function Shell({
   papel,
   leituras,
   resumo,
+  email,
+  nomeExibicao,
+  avatarUrl,
   children,
 }: {
   nome: string;
   papel: string | null;
   leituras: Leitura[];
   resumo: string;
+  email: string;
+  nomeExibicao: string | null;
+  avatarUrl: string | null;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [tema, setTema] = useState<"claro" | "escuro">("claro");
   const [copiloto, setCopiloto] = useState(true);
+  const [configAberto, setConfigAberto] = useState(false);
 
   useEffect(() => {
     document.documentElement.dataset.theme = tema === "escuro" ? "escuro" : "";
   }, [tema]);
 
+  async function sair() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
+
   const tituloAtual = GRUPOS_NAV.flatMap((g) => g.itens).find((i) => i.href === pathname)?.rot ?? "";
+  const nomeMostrado = nomeExibicao ?? nome;
 
   return (
     <div className="ap">
@@ -124,6 +144,21 @@ export function Shell({
             </div>
           ))}
         </nav>
+
+        <div className="lat__rodape">
+          <button type="button" className="item" onClick={() => setConfigAberto(true)}>
+            <span className="item__ic c-cinza">
+              <Settings size={14} strokeWidth={2.1} />
+            </span>
+            <span className="item__r">Configurações</span>
+          </button>
+          <button type="button" className="item item--sair" onClick={sair}>
+            <span className="item__ic c-vermelho">
+              <LogOut size={14} strokeWidth={2.1} />
+            </span>
+            <span className="item__r">Sair</span>
+          </button>
+        </div>
       </aside>
 
       <div className="col">
@@ -145,9 +180,18 @@ export function Shell({
               <input type="checkbox" checked={copiloto} onChange={() => setCopiloto(!copiloto)} />
               <span />
             </label>
-            <span className="ava ava--eu" title={`${nome} · ${papel ?? "sem papel"}`}>
-              {iniciais(nome)}
-            </span>
+            <button
+              type="button"
+              className="ava-bt"
+              onClick={() => setConfigAberto(true)}
+              title={`${nomeMostrado} · ${papel ?? "sem papel"}`}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="ava ava--foto" />
+              ) : (
+                <span className="ava ava--eu">{iniciais(nomeMostrado)}</span>
+              )}
+            </button>
           </div>
         </header>
 
@@ -201,6 +245,14 @@ export function Shell({
           )}
         </div>
       </div>
+
+      <ConfiguracoesModal
+        aberto={configAberto}
+        onFechar={() => setConfigAberto(false)}
+        nomeAtual={nomeMostrado}
+        avatarUrlAtual={avatarUrl}
+        email={email}
+      />
     </div>
   );
 }
