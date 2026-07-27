@@ -2,9 +2,11 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { TransicaoEntrada } from "@/components/auth/transicao-entrada";
 
+// Casado com a coreografia em globals.css (.auth-transicao): a última animação lá
+// termina aos 1450ms, então navegar aos 1500ms não corta nada pela metade.
 const DURACAO_TRANSICAO_MS = 1500;
 
 export function LoginForm() {
@@ -43,18 +45,7 @@ export function LoginForm() {
   }
 
   if (entrando) {
-    return (
-      <div className="auth-transicao">
-        <Image
-          src="/logo.png"
-          alt="Tailor Made"
-          width={280}
-          height={154}
-          priority
-          className="auth-transicao__logo"
-        />
-      </div>
-    );
+    return <TransicaoEntrada />;
   }
 
   return (

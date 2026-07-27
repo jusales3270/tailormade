@@ -35,6 +35,13 @@
   --raio-cartao: 14px;
   --raio-toast: 22px;
 
+  /* Cores da marca, amostradas da própria public/logo.png — não são as mesmas do
+     sistema (--azul/--indigo/--roxo, que vêm do design system da Apple). Usadas onde a
+     identidade da Tailor Made precisa aparecer literal, como na transição de entrada. */
+  --tm-navy: #021850;
+  --tm-violeta: #4a1af0;
+  --tm-ciano: #00c8e2;
+
   --fonte: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", var(--font-inter),
     system-ui, sans-serif;
   --tracking-titulo: -0.018em;
@@ -1611,7 +1618,12 @@ h3 {
   border-radius: 8px;
 }
 
-/* transição pós-login: logo em zoom-in cobrindo a tela inteira antes de abrir o painel */
+/* ── transição pós-login: logo em zoom + feixes que estouram ao bater no chão ──
+   Coreografia inteira em 1,5s (ver DURACAO_TRANSICAO_MS no login-form):
+     0ms         feixes começam a cair (último sai aos 250ms, queda de 700ms)
+     100–1000ms  logo em zoom-in
+     700–1470ms  estouros, cada um no instante em que o feixe correspondente toca o chão
+   Nada aqui passa de 1470ms — a navegação aos 1500ms nunca corta uma animação no meio. */
 .auth-transicao {
   position: fixed;
   inset: 0;
@@ -1619,34 +1631,139 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  overflow: hidden;
+  background: linear-gradient(to bottom, #fff, var(--bg));
 }
 .auth-transicao__logo {
+  position: relative;
+  z-index: 1;
   width: min(280px, 62vw);
   height: auto;
-  animation: auth-logo-zoom 1.5s cubic-bezier(0.22, 0.9, 0.28, 1) both;
-  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.16));
+  animation: auth-logo-zoom 900ms cubic-bezier(0.22, 0.9, 0.28, 1) 100ms both;
+  filter: drop-shadow(0 10px 28px rgba(2, 24, 80, 0.18));
 }
 @keyframes auth-logo-zoom {
   0% {
     opacity: 0;
-    transform: scale(0.15);
+    transform: scale(0.4);
   }
-  50% {
+  55% {
     opacity: 1;
-    transform: scale(1.22);
+    transform: scale(1.08);
   }
-  72% {
-    transform: scale(0.94);
+  78% {
+    transform: scale(0.97);
   }
   100% {
     opacity: 1;
     transform: scale(1);
   }
 }
+
+.feixes {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.feixe {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(to top, var(--tm-violeta), var(--tm-ciano), transparent);
+  animation-name: feixe-cair;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.7, 1);
+  animation-fill-mode: both;
+}
+/* `calc(100vh - 100%)`: em translate, % é do próprio elemento — isso põe a *base* do
+   feixe exatamente no chão no frame final, qualquer que seja a altura dele. É o que
+   deixa o estouro sincronizado sem medir nada em runtime. */
+@keyframes feixe-cair {
+  0% {
+    transform: translate3d(-50%, -160px, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-50%, calc(100vh - 100%), 0);
+    opacity: 1;
+  }
+}
+.feixes__chao {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: var(--bg);
+  box-shadow: 0 0 24px rgba(2, 24, 80, 0.07), 0 1px 1px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(2, 24, 80, 0.05), 0 0 4px rgba(2, 24, 80, 0.09),
+    0 16px 68px rgba(2, 24, 80, 0.06);
+}
+
+.estouro {
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  height: 2px;
+}
+.estouro__brilho {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 46px;
+  height: 6px;
+  margin-left: -23px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--tm-violeta), transparent);
+  filter: blur(3px);
+  animation: estouro-brilho 500ms ease-out both;
+}
+@keyframes estouro-brilho {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.25);
+  }
+  25% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1.5);
+  }
+}
+.estouro__p {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, var(--tm-violeta), var(--tm-ciano));
+  animation: estouro-particula 520ms cubic-bezier(0.2, 0.7, 0.4, 1) both;
+}
+@keyframes estouro-particula {
+  0% {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(-50% + var(--dx)), var(--dy), 0) scale(0.35);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .auth-transicao__logo {
+  .auth-transicao__logo,
+  .feixe,
+  .estouro__brilho,
+  .estouro__p {
     animation: none;
+  }
+  .feixes {
+    display: none;
   }
 }
 
