@@ -64,7 +64,7 @@ export function ConfiguracoesModal({
     }
 
     salvar.execute({
-      ...(nome.trim() && nome.trim() !== nomeAtual ? { nomeExibicao: nome.trim() } : {}),
+      ...(nome.trim() && nome.trim() !== nomeAtual ? { nome: nome.trim() } : {}),
       ...(arquivo ? { avatar: arquivo } : {}),
       ...(novaSenha ? { novaSenha } : {}),
     });
@@ -109,7 +109,7 @@ export function ConfiguracoesModal({
           </div>
 
           <label className="campo-form">
-            Nome de exibição
+            Seu nome
             <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} required maxLength={120} />
           </label>
 
@@ -136,8 +136,7 @@ export function ConfiguracoesModal({
           </label>
 
           <p className="min">
-            Nome e foto aparecem só para você — não mudam como os outros membros veem seu registro na
-            organização.
+            Seu nome e sua foto aparecem para todos os membros da organização.
           </p>
 
           {(erro || salvar.result.serverError) && (

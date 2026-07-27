@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { lancarMovimento } from "@/lib/safe-actions/movimento-lancar";
-import { aprovarMovimento } from "@/lib/safe-actions/movimento-aprovar";
 import { registrarIntegralizacao } from "@/lib/safe-actions/aporte-registrar-integralizacao";
 import { CATEGORIAS_MOVIMENTO } from "@/lib/financeiro/categorias";
 import { brl } from "@/lib/formatar";
@@ -13,9 +12,9 @@ import type { AporteUI, DocumentoOpcaoUI, MetricasUI, MovimentoUI, StatusMovimen
 
 const STATUS_MOVIMENTO: Record<StatusMovimento, { rot: string; cor: string }> = {
   previsto: { rot: "Previsto", cor: "cinza" },
-  aguarda_aprovacao: { rot: "Aguarda aprovação", cor: "laranja" },
-  aprovado: { rot: "Aprovado", cor: "azul" },
-  pago: { rot: "Pago", cor: "verde" },
+  aguarda_aprovacao: { rot: "Lançado", cor: "cinza" },
+  aprovado: { rot: "Lançado", cor: "cinza" },
+  pago: { rot: "Registrado", cor: "verde" },
   rejeitado: { rot: "Rejeitado", cor: "vermelho" },
 };
 
@@ -241,11 +240,8 @@ function LancarMovimentoForm({ orgId, aoFechar }: { orgId: string; aoFechar: () 
   );
 }
 
-function LinhaMovimento({ mov, membroId, podeGerir }: { mov: MovimentoUI; membroId: string; podeGerir: boolean }) {
-  const router = useRouter();
-  const aprovar = useAction(aprovarMovimento, { onSuccess: () => router.refresh() });
+function LinhaMovimento({ mov }: { mov: MovimentoUI }) {
   const st = STATUS_MOVIMENTO[mov.status];
-  const podeAprovar = podeGerir && mov.status === "aguarda_aprovacao" && mov.solicitanteId !== membroId;
 
   return (
     <li className="linha">
@@ -254,29 +250,17 @@ function LinhaMovimento({ mov, membroId, podeGerir }: { mov: MovimentoUI; membro
         <em>
           {mov.codigo} · {mov.categoria} · {mov.solicitanteNome ?? "?"}
         </em>
-        {aprovar.result.serverError && <em className="c-vermelho">{aprovar.result.serverError}</em>}
       </span>
       <span className="valor">
         {mov.direcao === "saida" ? "−" : "+"}
         {brl(mov.valorCents)}
       </span>
-      {podeAprovar ? (
-        <button
-          className="bt bt--min bt--azul"
-          onClick={() => aprovar.execute({ movimentoId: mov.id })}
-          disabled={aprovar.isPending}
-        >
-          {aprovar.isPending ? "Aprovando…" : "Aprovar"}
-        </button>
-      ) : (
-        <span className={`selo selo--${st.cor}`}>{st.rot}</span>
-      )}
+      <span className={`selo selo--${st.cor}`}>{st.rot}</span>
     </li>
   );
 }
 
 export function FinanceiroClient({
-  membroId,
   orgId,
   podeGerir,
   metricas,
@@ -284,7 +268,6 @@ export function FinanceiroClient({
   movimentos,
   documentos,
 }: {
-  membroId: string;
   orgId: string;
   podeGerir: boolean;
   metricas: MetricasUI;
@@ -319,7 +302,7 @@ export function FinanceiroClient({
           {abrirLancar && <LancarMovimentoForm orgId={orgId} aoFechar={() => setAbrirLancar(false)} />}
           <ul className="lista">
             {movimentos.map((m) => (
-              <LinhaMovimento key={m.id} mov={m} membroId={membroId} podeGerir={podeGerir} />
+              <LinhaMovimento key={m.id} mov={m} />
             ))}
           </ul>
         </section>

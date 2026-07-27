@@ -2,12 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Plus } from "lucide-react";
+import { Download, Lock, Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { convidarMembro } from "@/lib/safe-actions/membro-convidar";
 import { desativarMembro } from "@/lib/safe-actions/membro-desativar";
 import { aplicarParticipacao } from "@/lib/safe-actions/participacao-aplicar";
 import { iniciais } from "@/lib/iniciais";
+import { Avatar } from "@/components/avatar";
 import type { DeliberacaoAprovadaUI, MembroUI, PapelMembro } from "./tipos";
 
 const PAPEIS: PapelMembro[] = ["admin", "socio", "tecnico", "convidado"];
@@ -19,7 +20,7 @@ function LinhaMembro({ membro, ehAdmin, souEu }: { membro: MembroUI; ehAdmin: bo
 
   return (
     <li className="linha linha--alta">
-      <span className="ava ava--gr">{iniciais(membro.nome)}</span>
+      <Avatar nome={membro.nome} avatarUrl={membro.avatarUrl} className="ava--gr" />
       <span className="linha__t">
         {membro.nome}
         <em>
@@ -275,6 +276,22 @@ export function SociosClient({
               deliberação aprovada (SA-25).
             </p>
           )}
+        </section>
+      )}
+
+      {ehAdmin && (
+        <section className="cart">
+          <div className="cart__cab">
+            <h2>Exportações</h2>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <a href="/api/exportar/auditoria" className="bt bt--claro bt--min">
+              <Download size={13} strokeWidth={2.6} /> Auditoria (CSV)
+            </a>
+            <a href="/api/exportar/dossie" className="bt bt--claro bt--min">
+              <Download size={13} strokeWidth={2.6} /> Dossiê da org (PDF)
+            </a>
+          </div>
         </section>
       )}
     </>

@@ -9,6 +9,7 @@ export type CanalUI = {
 export type MembroAvatarUI = {
   id: string;
   nome: string;
+  avatarUrl: string | null;
 };
 
 export type MensagemUI = {

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { urlAvatar } from "@/lib/avatar";
 import { Titulo } from "@/components/shell/titulo";
 import { SociosClient } from "./socios-client";
 import type { DeliberacaoAprovadaUI, MembroUI } from "./tipos";
@@ -23,7 +24,7 @@ export default async function SociosPage() {
   const [{ data: membros }, { data: deliberacoesAprovadas }] = await Promise.all([
     supabase
       .from("membros")
-      .select("id, nome, email, papel, participacao_pct, ativo")
+      .select("id, nome, email, papel, participacao_pct, ativo, avatar_path")
       .eq("org_id", membro.org_id)
       .eq("ativo", true)
       .order("participacao_pct", { ascending: false }),
@@ -43,6 +44,7 @@ export default async function SociosPage() {
     email: m.email,
     papel: m.papel,
     participacaoPct: Number(m.participacao_pct),
+    avatarUrl: urlAvatar(m.avatar_path),
     ativo: m.ativo,
   }));
 

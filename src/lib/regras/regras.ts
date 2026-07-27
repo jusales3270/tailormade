@@ -7,7 +7,6 @@ import type {
   DocumentoEstado,
   EstadoOrg,
   Leitura,
-  MovimentoEstado,
   ReuniaoEstado,
   SugestaoEstado,
 } from "./tipos";
@@ -55,24 +54,6 @@ export function r07AportesPendentes(aportes: AporteEstado[]): Leitura[] {
       fatos: { faltaCents: a.comprometidoCents - a.integralizadoCents },
       origem: { tabela: "aportes", id: a.id },
     }));
-}
-
-// R08 — Movimentos em aguarda_aprovacao ⟹ ação, com soma.
-export function r08MovimentosAguardandoAprovacao(movimentos: MovimentoEstado[]): Leitura[] {
-  const pendentes = movimentos.filter((m) => m.status === "aguarda_aprovacao");
-  if (pendentes.length === 0) return [];
-
-  const somaCents = pendentes.reduce((acc, m) => acc + m.valorCents, 0);
-  return [
-    {
-      regra: "R08",
-      severidade: "acao",
-      titulo: `${pendentes.length} movimento(s) aguardando aprovação`,
-      fatos: { quantidade: pendentes.length, somaCents },
-      // Agregado sobre várias linhas — sem uma única linha de origem, como R09.
-      origem: { tabela: "movimentos", id: "aguarda_aprovacao" },
-    },
-  ];
 }
 
 // R09 — Fôlego = caixa ÷ média de saídas dos últimos 90 dias. Sempre presente.
@@ -127,7 +108,6 @@ export function r11SugestoesPendentes(sugestoes: SugestaoEstado[], agora: Date):
 export function calcularLeituras(estado: EstadoOrg): Leitura[] {
   return [
     ...r05DocumentosCriticosAusentes(estado.documentos),
-    ...r08MovimentosAguardandoAprovacao(estado.movimentos),
     ...r06ReunioesSemPauta(estado.reunioes, estado.agora),
     ...r07AportesPendentes(estado.aportes),
     ...r10DocumentosVencendo(estado.documentos, estado.agora),

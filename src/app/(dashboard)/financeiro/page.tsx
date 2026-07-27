@@ -92,7 +92,6 @@ export default async function FinanceiroPage() {
       <Titulo t="Financeiro" s="Substitui o grupo do financeiro. Toda despesa tem número, categoria e responsável." />
       <FinanceiroClient
         orgId={membro.org_id}
-        membroId={membro.id}
         podeGerir={membro.papel === "admin" || membro.papel === "socio"}
         metricas={metricas}
         aportes={aportesUI}

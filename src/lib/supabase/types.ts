@@ -253,6 +253,35 @@ export type Database = {
           },
         ]
       }
+      avisos_lidos: {
+        Row: {
+          aviso_chave: string
+          id: string
+          lido_em: string
+          membro_id: string
+        }
+        Insert: {
+          aviso_chave: string
+          id?: string
+          lido_em?: string
+          membro_id: string
+        }
+        Update: {
+          aviso_chave?: string
+          id?: string
+          lido_em?: string
+          membro_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avisos_lidos_membro_id_fkey"
+            columns: ["membro_id"]
+            isOneToOne: false
+            referencedRelation: "membros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       canais: {
         Row: {
           arquivado: boolean
@@ -687,6 +716,7 @@ export type Database = {
       membros: {
         Row: {
           ativo: boolean
+          avatar_path: string | null
           email: string
           entrou_em: string
           id: string
@@ -698,6 +728,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
+          avatar_path?: string | null
           email: string
           entrou_em?: string
           id?: string
@@ -709,6 +740,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
+          avatar_path?: string | null
           email?: string
           entrou_em?: string
           id?: string
@@ -1172,6 +1204,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      atualizar_meu_perfil: {
+        Args: { novo_avatar_path: string; novo_nome: string }
+        Returns: undefined
+      }
       encerrar_deliberacoes_vencidas: { Args: never; Returns: undefined }
       membro_ativo_org: { Args: { check_org_id: string }; Returns: boolean }
       papel_atual: {

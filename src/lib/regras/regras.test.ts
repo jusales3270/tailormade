@@ -4,7 +4,6 @@ import {
   r05DocumentosCriticosAusentes,
   r06ReunioesSemPauta,
   r07AportesPendentes,
-  r08MovimentosAguardandoAprovacao,
   r09FolegoDeCaixa,
   r10DocumentosVencendo,
   r11SugestoesPendentes,
@@ -28,9 +27,9 @@ const ESTADO_VAZIO: EstadoOrg = {
 describe("calcularLeituras — fixture da fundação (T-007, critério de aceite)", () => {
   const leituras = calcularLeituras(estadoFundacao);
 
-  it("produz exatamente 7 leituras, uma por regra que dispara", () => {
-    expect(leituras).toHaveLength(7);
-    expect(leituras.map((l) => l.regra)).toEqual(["R05", "R08", "R06", "R07", "R10", "R11", "R09"]);
+  it("produz exatamente 6 leituras, uma por regra que dispara", () => {
+    expect(leituras).toHaveLength(6);
+    expect(leituras.map((l) => l.regra)).toEqual(["R05", "R06", "R07", "R10", "R11", "R09"]);
   });
 
   it("R05: aponta o DOC-06 como risco, com origem rastreável", () => {
@@ -38,12 +37,6 @@ describe("calcularLeituras — fixture da fundação (T-007, critério de aceite
     expect(r05.severidade).toBe("risco");
     expect(r05.origem).toEqual({ tabela: "documentos", id: "doc:DOC-06" });
     expect(r05.fatos.codigo).toBe("DOC-06");
-  });
-
-  it("R08: soma exatamente os dois movimentos aguardando aprovação (R$ 4.280)", () => {
-    const r08 = leituras.find((l) => l.regra === "R08")!;
-    expect(r08.severidade).toBe("acao");
-    expect(r08.fatos).toEqual({ quantidade: 2, somaCents: 428_000 });
   });
 
   it("R06: aponta a R-013 (dentro de 48h, sem pauta) e não a R-012 (tem pauta)", () => {
@@ -94,7 +87,6 @@ describe("anti-alucinação: sem registro, o motor não afirma nada", () => {
     expect(r05DocumentosCriticosAusentes([])).toEqual([]);
     expect(r06ReunioesSemPauta([], agoraFixture)).toEqual([]);
     expect(r07AportesPendentes([])).toEqual([]);
-    expect(r08MovimentosAguardandoAprovacao([])).toEqual([]);
     expect(r10DocumentosVencendo([], agoraFixture)).toEqual([]);
     expect(r11SugestoesPendentes([], agoraFixture)).toEqual([]);
   });

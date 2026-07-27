@@ -14,8 +14,10 @@ const schema = z.object({
   competencia: z.string().nullable(),
 });
 
-// SA-20 (movimento.lancar) — master doc §2.6/§8: nasce sempre em aguarda_aprovacao,
-// não há alçada por valor. Só admin/socio (RLS movimentos_write já trava isso).
+// SA-20 (movimento.lancar). O fluxo de aprovação (aguarda_aprovacao -> aprovado, com
+// aprovador ≠ solicitante) foi removido a pedido: o Financeiro é um checkpoint, não uma
+// alçada — a despesa sobe e já aparece no caixa. Por isso o lançamento nasce 'pago', que
+// é o status que calcularCaixaEQueima soma. Só admin/socio (RLS movimentos_write).
 export const lancarMovimento = actionClient
   .metadata({ acao: "movimento.lancar", entidade: "movimentos" })
   .inputSchema(schema)
@@ -52,7 +54,7 @@ export const lancarMovimento = actionClient
         valor_cents: parsedInput.valorCents,
         categoria: parsedInput.categoria,
         direcao: parsedInput.direcao,
-        status: "aguarda_aprovacao",
+        status: "pago",
         solicitante_id: membro.id,
         competencia: parsedInput.competencia,
       })

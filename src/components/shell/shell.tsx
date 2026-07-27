@@ -13,25 +13,18 @@ import {
   Calendar,
   Scale,
   Users,
-  Sparkles,
   Search,
   Sun,
   Moon,
-  X,
-  AlertTriangle,
-  Bell,
-  Clock,
-  ShieldCheck,
-  ArrowRight,
   Settings,
   LogOut,
   type LucideIcon,
 } from "lucide-react";
-import { iniciais } from "@/lib/iniciais";
-import { formatarFatos } from "@/lib/copiloto/formatar-fatos";
+import { Avatar } from "@/components/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { ConfiguracoesModal } from "./configuracoes-modal";
-import type { Leitura, Severidade } from "@/lib/regras/tipos";
+import { QuadroAvisos } from "./quadro-avisos";
+import type { Aviso } from "@/lib/avisos";
 
 type ItemNav = { href: string; rot: string; Ico: LucideIcon; cor: string };
 type GrupoNav = { rot: string; itens: ItemNav[] };
@@ -62,47 +55,25 @@ const GRUPOS_NAV: GrupoNav[] = [
   },
 ];
 
-const ROTA_POR_TABELA: Record<string, string> = {
-  fases: "/trilha",
-  fase_itens: "/trilha",
-  documentos: "/cofre",
-  deliberacoes: "/deliberacoes",
-  reunioes: "/reunioes",
-  aportes: "/financeiro",
-  movimentos: "/financeiro",
-  sugestoes: "/debates",
-};
-
-const CONFIG_SEVERIDADE: Record<Severidade, { cor: string; Ico: LucideIcon }> = {
-  risco: { cor: "vermelho", Ico: AlertTriangle },
-  acao: { cor: "laranja", Ico: Bell },
-  atencao: { cor: "azul", Ico: Clock },
-  info: { cor: "verde", Ico: ShieldCheck },
-};
-
 export function Shell({
   nome,
   papel,
-  leituras,
-  resumo,
+  avisos,
   email,
-  nomeExibicao,
   avatarUrl,
   children,
 }: {
   nome: string;
   papel: string | null;
-  leituras: Leitura[];
-  resumo: React.ReactNode;
+  avisos: Aviso[];
   email: string;
-  nomeExibicao: string | null;
   avatarUrl: string | null;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const [tema, setTema] = useState<"claro" | "escuro">("claro");
-  const [copiloto, setCopiloto] = useState(true);
+  const [avisosAbertos, setAvisosAbertos] = useState(true);
   const [configAberto, setConfigAberto] = useState(false);
 
   useEffect(() => {
@@ -117,7 +88,6 @@ export function Shell({
   }
 
   const tituloAtual = GRUPOS_NAV.flatMap((g) => g.itens).find((i) => i.href === pathname)?.rot ?? "";
-  const nomeMostrado = nomeExibicao ?? nome;
 
   return (
     <div className="ap">
@@ -176,21 +146,17 @@ export function Shell({
             >
               {tema === "claro" ? <Moon size={16} strokeWidth={2} /> : <Sun size={16} strokeWidth={2} />}
             </button>
-            <label className="switch" title="Copiloto">
-              <input type="checkbox" checked={copiloto} onChange={() => setCopiloto(!copiloto)} />
+            <label className="switch" title="Avisos">
+              <input type="checkbox" checked={avisosAbertos} onChange={() => setAvisosAbertos(!avisosAbertos)} />
               <span />
             </label>
             <button
               type="button"
               className="ava-bt"
               onClick={() => setConfigAberto(true)}
-              title={`${nomeMostrado} · ${papel ?? "sem papel"}`}
+              title={`${nome} · ${papel ?? "sem papel"}`}
             >
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="ava ava--foto" />
-              ) : (
-                <span className="ava ava--eu">{iniciais(nomeMostrado)}</span>
-              )}
+              <Avatar nome={nome} avatarUrl={avatarUrl} className={avatarUrl ? "" : "ava--eu"} />
             </button>
           </div>
         </header>
@@ -198,49 +164,9 @@ export function Shell({
         <div className="corpo">
           <main className="tela">{children}</main>
 
-          {copiloto && (
+          {avisosAbertos && (
             <aside className="insp">
-              <div className="insp__cab">
-                <span className="insp__t">
-                  <Sparkles size={13} strokeWidth={2.2} /> Copiloto
-                </span>
-                <button className="glifo glifo--min" onClick={() => setCopiloto(false)}>
-                  <X size={14} />
-                </button>
-              </div>
-              <p className="insp__resumo">{resumo}</p>
-              {leituras.map((l) => {
-                const { cor, Ico } = CONFIG_SEVERIDADE[l.severidade];
-                const rota = ROTA_POR_TABELA[l.origem.tabela];
-                const conteudo = (
-                  <>
-                    <span className={`leitura__ic c-${cor}`}>
-                      <Ico size={13} strokeWidth={2.3} />
-                    </span>
-                    <span className="leitura__c">
-                      <strong>{l.titulo}</strong>
-                      <p>{formatarFatos(l)}</p>
-                      <em>
-                        origem: {l.origem.tabela} <ArrowRight size={10} />
-                      </em>
-                    </span>
-                  </>
-                );
-                const chave = `${l.regra}-${l.origem.id}`;
-                return rota ? (
-                  <Link key={chave} href={rota} className="leitura">
-                    {conteudo}
-                  </Link>
-                ) : (
-                  <div key={chave} className="leitura">
-                    {conteudo}
-                  </div>
-                );
-              })}
-              <p className="insp__pe">
-                O copiloto só afirma o que consegue apontar em um registro do painel. Sem registro, ele não
-                conclui.
-              </p>
+              <QuadroAvisos avisos={avisos} />
             </aside>
           )}
         </div>
@@ -249,7 +175,7 @@ export function Shell({
       <ConfiguracoesModal
         aberto={configAberto}
         onFechar={() => setConfigAberto(false)}
-        nomeAtual={nomeMostrado}
+        nomeAtual={nome}
         avatarUrlAtual={avatarUrl}
         email={email}
       />

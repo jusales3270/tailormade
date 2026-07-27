@@ -6,6 +6,7 @@ import { Hash, Paperclip, ArrowUp, Bookmark, Pencil, Plus, Trash2 } from "lucide
 import { useAction } from "next-safe-action/hooks";
 import { createClient } from "@/lib/supabase/client";
 import { iniciais } from "@/lib/iniciais";
+import { Avatar } from "@/components/avatar";
 import { publicarMensagem } from "@/lib/safe-actions/mensagem-publicar";
 import { editarMensagem } from "@/lib/safe-actions/mensagem-editar";
 import { excluirMensagem } from "@/lib/safe-actions/mensagem-excluir";
@@ -158,6 +159,7 @@ export function DebatesClient({
   const fimChat = useRef<HTMLDivElement>(null);
 
   const nomePorMembroId = useMemo(() => new Map(membros.map((m) => [m.id, m.nome])), [membros]);
+  const avatarPorMembroId = useMemo(() => new Map(membros.map((m) => [m.id, m.avatarUrl])), [membros]);
 
   const enviar = useAction(publicarMensagem, { onSuccess: () => setRascunho("") });
   const editar = useAction(editarMensagem, {
@@ -316,9 +318,7 @@ export function DebatesClient({
           <CabecalhoCanal key={canalAtivo.id} canal={canalAtivo} souCriador={canalAtivo.criadoPor === meuMembroId} />
           <div className="pilha">
             {membros.map((m) => (
-              <span key={m.id} className="ava" title={m.nome}>
-                {iniciais(m.nome)}
-              </span>
+              <Avatar key={m.id} nome={m.nome} avatarUrl={m.avatarUrl} />
             ))}
           </div>
         </div>
@@ -331,7 +331,7 @@ export function DebatesClient({
 
             return (
               <div key={m.id} className={`bloco ${meu ? "bloco--meu" : ""}`}>
-                {!meu && <span className="ava">{iniciais(m.autorNome)}</span>}
+                {!meu && <Avatar nome={m.autorNome} avatarUrl={avatarPorMembroId.get(m.autorId) ?? null} />}
                 <div className="bloco__c">
                   {!meu && (
                     <div className="bloco__n">

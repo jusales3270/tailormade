@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { urlAvatar } from "@/lib/avatar";
 import { DebatesClient } from "./debates-client";
 
 export default async function DebatesPage() {
@@ -20,7 +21,7 @@ export default async function DebatesPage() {
   ]);
 
   const { data: membrosOrg } = membro
-    ? await supabase.from("membros").select("id, nome").eq("org_id", membro.org_id).eq("ativo", true)
+    ? await supabase.from("membros").select("id, nome, avatar_path").eq("org_id", membro.org_id).eq("ativo", true)
     : { data: [] };
 
   const canaisUI = (canais ?? []).map((c) => ({
@@ -34,7 +35,7 @@ export default async function DebatesPage() {
   return (
     <DebatesClient
       canais={canaisUI}
-      membros={membrosOrg ?? []}
+      membros={(membrosOrg ?? []).map((m) => ({ id: m.id, nome: m.nome, avatarUrl: urlAvatar(m.avatar_path) }))}
       meuMembroId={membro?.id ?? null}
       orgId={membro?.org_id ?? null}
       souAdmin={membro?.papel === "admin"}

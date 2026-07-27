@@ -7,6 +7,7 @@ export type MembroUI = {
   papel: PapelMembro;
   participacaoPct: number;
   ativo: boolean;
+  avatarUrl: string | null;
 };
 
 export type DeliberacaoAprovadaUI = {
