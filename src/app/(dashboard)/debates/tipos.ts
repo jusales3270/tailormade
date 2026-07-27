@@ -3,6 +3,7 @@ export type CanalUI = {
   slug: string;
   nome: string;
   descricao: string | null;
+  criadoPor: string | null;
 };
 
 export type MembroAvatarUI = {

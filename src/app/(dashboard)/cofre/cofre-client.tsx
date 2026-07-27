@@ -2,10 +2,12 @@
 
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, FileText, Plus } from "lucide-react";
+import { AlertTriangle, FileText, Plus, Pencil, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { enviarDocumentoVersao } from "@/lib/safe-actions/documento-versao-enviar";
 import { criarDocumento } from "@/lib/safe-actions/documento-criar";
+import { editarDocumento } from "@/lib/safe-actions/documento-editar";
+import { excluirDocumento } from "@/lib/safe-actions/documento-excluir";
 import type { DocumentoUI, StatusDocumento } from "./tipos";
 
 function NovoDocumentoForm({ orgId }: { orgId: string }) {
@@ -87,7 +89,13 @@ const STATUS_DOC: Record<StatusDocumento, { rot: string; cor: string }> = {
 function LinhaDocumento({ doc }: { doc: DocumentoUI }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [editando, setEditando] = useState(false);
+  const [nome, setNome] = useState(doc.nome);
+  const [grupo, setGrupo] = useState(doc.grupo);
+  const [critico, setCritico] = useState(doc.critico);
   const enviar = useAction(enviarDocumentoVersao, { onSuccess: () => router.refresh() });
+  const editar = useAction(editarDocumento, { onSuccess: () => { router.refresh(); setEditando(false); } });
+  const excluir = useAction(excluirDocumento, { onSuccess: () => router.refresh() });
   const st = STATUS_DOC[doc.status];
 
   function aoSelecionarArquivo(e: ChangeEvent<HTMLInputElement>) {
@@ -95,6 +103,48 @@ function LinhaDocumento({ doc }: { doc: DocumentoUI }) {
     if (!arquivo) return;
     enviar.execute({ documentoId: doc.id, arquivo });
     e.target.value = "";
+  }
+
+  function salvarEdicao(e: FormEvent) {
+    e.preventDefault();
+    if (!nome.trim() || !grupo.trim()) return;
+    editar.execute({ documentoId: doc.id, nome: nome.trim(), grupo: grupo.trim(), critico });
+  }
+
+  function excluirClick() {
+    if (!confirm(`Excluir "${doc.nome}"? Só é possível porque nenhum arquivo foi enviado ainda.`)) return;
+    excluir.execute({ documentoId: doc.id });
+  }
+
+  if (editando) {
+    return (
+      <li className="linha">
+        <form onSubmit={salvarEdicao} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", flex: 1 }}>
+          <input
+            autoFocus
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            style={{ flex: 2, minWidth: 160, background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13.5 }}
+          />
+          <input
+            value={grupo}
+            onChange={(e) => setGrupo(e.target.value)}
+            style={{ flex: 1, minWidth: 120, background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13.5 }}
+          />
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+            <input type="checkbox" checked={critico} onChange={(e) => setCritico(e.target.checked)} />
+            crítico
+          </label>
+          <button type="submit" className="bt bt--azul bt--min" disabled={editar.isPending}>
+            Salvar
+          </button>
+          <button type="button" className="bt bt--claro bt--min" onClick={() => setEditando(false)}>
+            Cancelar
+          </button>
+          {editar.result.serverError && <span className="min c-vermelho">{editar.result.serverError}</span>}
+        </form>
+      </li>
+    );
   }
 
   return (
@@ -117,7 +167,9 @@ function LinhaDocumento({ doc }: { doc: DocumentoUI }) {
             hash {doc.ultimoHash.slice(0, 12)}…
           </em>
         )}
-        {enviar.result.serverError && <em className="c-vermelho">{enviar.result.serverError}</em>}
+        {(enviar.result.serverError || excluir.result.serverError) && (
+          <em className="c-vermelho">{enviar.result.serverError ?? excluir.result.serverError}</em>
+        )}
       </span>
       <span className={`selo selo--${st.cor}`}>{st.rot}</span>
       <input ref={inputRef} type="file" hidden onChange={aoSelecionarArquivo} />
@@ -128,6 +180,18 @@ function LinhaDocumento({ doc }: { doc: DocumentoUI }) {
       >
         {enviar.isPending ? "Enviando…" : doc.ultimaVersao ? "Reenviar" : "Enviar"}
       </button>
+      {doc.souAutor && (
+        <>
+          <button className="glifo glifo--min" title="Editar" onClick={() => setEditando(true)}>
+            <Pencil size={13} strokeWidth={2.2} />
+          </button>
+          {!doc.temVersao && (
+            <button className="glifo glifo--min" title="Excluir" onClick={excluirClick} disabled={excluir.isPending}>
+              <Trash2 size={13} strokeWidth={2.2} />
+            </button>
+          )}
+        </>
+      )}
     </li>
   );
 }

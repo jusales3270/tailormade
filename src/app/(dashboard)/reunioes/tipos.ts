@@ -1,4 +1,4 @@
-export type PautaItemUI = { id: string; item: string };
+export type PautaItemUI = { id: string; item: string; propostoPor: string | null };
 
 export type EncaminhamentoUI = {
   id: string;
@@ -20,6 +20,7 @@ export type ReuniaoUI = {
   ata: AtaUI | null;
   encaminhamentos: EncaminhamentoUI[];
   semPauta: boolean;
+  criadoPor: string | null;
 };
 
 export type MembroOpcaoUI = { id: string; nome: string };

@@ -53,6 +53,7 @@ export const marcarReuniao = actionClient
         tipo: parsedInput.tipo,
         inicio: parsedInput.inicio,
         link: parsedInput.link ?? null,
+        criado_por: membro.id,
       })
       .select("id")
       .single();

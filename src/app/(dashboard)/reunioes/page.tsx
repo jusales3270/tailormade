@@ -23,8 +23,8 @@ export default async function ReunioesPage() {
     supabase
       .from("reunioes")
       .select(
-        `id, codigo, titulo, tipo, inicio,
-         pauta:reuniao_pauta(id, ordem, item),
+        `id, codigo, titulo, tipo, inicio, criado_por,
+         pauta:reuniao_pauta(id, ordem, item, proposto_por),
          atas(corpo, publicada_em)`,
       )
       .eq("org_id", membro.org_id)
@@ -66,7 +66,10 @@ export default async function ReunioesPage() {
       titulo: r.titulo,
       tipo: r.tipo,
       inicio: r.inicio,
-      pauta: r.pauta.slice().sort((a, b) => a.ordem - b.ordem).map((p) => ({ id: p.id, item: p.item })),
+      pauta: r.pauta
+        .slice()
+        .sort((a, b) => a.ordem - b.ordem)
+        .map((p) => ({ id: p.id, item: p.item, propostoPor: p.proposto_por })),
       ata: ata ? { corpo: ata.corpo, publicadaEm: ata.publicada_em } : null,
       encaminhamentos: encaminhamentos.map((e) => ({
         id: e.id,
@@ -76,6 +79,7 @@ export default async function ReunioesPage() {
         status: e.status,
       })),
       semPauta: semPautaIds.has(r.id),
+      criadoPor: r.criado_por,
     };
   });
 
@@ -89,6 +93,7 @@ export default async function ReunioesPage() {
         reunioes={reunioesUI}
         membros={membrosOrg ?? []}
         orgId={membro.org_id}
+        meuMembroId={membro.id}
         podeGerir={membro.papel === "admin" || membro.papel === "socio"}
       />
     </>

@@ -256,6 +256,7 @@ export type Database = {
       canais: {
         Row: {
           arquivado: boolean
+          criado_por: string | null
           descricao: string | null
           id: string
           nome: string
@@ -264,6 +265,7 @@ export type Database = {
         }
         Insert: {
           arquivado?: boolean
+          criado_por?: string | null
           descricao?: string | null
           id?: string
           nome: string
@@ -272,6 +274,7 @@ export type Database = {
         }
         Update: {
           arquivado?: boolean
+          criado_por?: string | null
           descricao?: string | null
           id?: string
           nome?: string
@@ -279,6 +282,13 @@ export type Database = {
           slug?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "canais_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "membros"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "canais_org_id_fkey"
             columns: ["org_id"]
@@ -465,6 +475,7 @@ export type Database = {
       documentos: {
         Row: {
           codigo: string
+          criado_por: string | null
           critico: boolean
           grupo: string
           id: string
@@ -476,6 +487,7 @@ export type Database = {
         }
         Insert: {
           codigo: string
+          criado_por?: string | null
           critico?: boolean
           grupo: string
           id?: string
@@ -487,6 +499,7 @@ export type Database = {
         }
         Update: {
           codigo?: string
+          criado_por?: string | null
           critico?: boolean
           grupo?: string
           id?: string
@@ -497,6 +510,13 @@ export type Database = {
           vence_em?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "documentos_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "membros"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "documentos_org_id_fkey"
             columns: ["org_id"]
@@ -981,6 +1001,7 @@ export type Database = {
       reunioes: {
         Row: {
           codigo: string
+          criado_por: string | null
           fim: string | null
           id: string
           inicio: string
@@ -991,6 +1012,7 @@ export type Database = {
         }
         Insert: {
           codigo: string
+          criado_por?: string | null
           fim?: string | null
           id?: string
           inicio: string
@@ -1001,6 +1023,7 @@ export type Database = {
         }
         Update: {
           codigo?: string
+          criado_por?: string | null
           fim?: string | null
           id?: string
           inicio?: string
@@ -1010,6 +1033,13 @@ export type Database = {
           titulo?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reunioes_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "membros"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reunioes_org_id_fkey"
             columns: ["org_id"]
@@ -1142,6 +1172,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      encerrar_deliberacoes_vencidas: { Args: never; Returns: undefined }
       membro_ativo_org: { Args: { check_org_id: string }; Returns: boolean }
       papel_atual: {
         Args: { check_org_id: string }

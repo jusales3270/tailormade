@@ -17,4 +17,6 @@ export type DocumentoUI = {
   ultimaVersao: number | null;
   ultimoHash: string | null;
   enviadoEm: string | null;
+  souAutor: boolean;
+  temVersao: boolean;
 };

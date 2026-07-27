@@ -50,6 +50,7 @@ export const criarDocumento = actionClient
         grupo: parsedInput.grupo,
         critico: parsedInput.critico,
         status: "ausente",
+        criado_por: membro.id,
       })
       .select("id")
       .single();

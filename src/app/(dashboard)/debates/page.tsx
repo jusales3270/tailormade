@@ -6,7 +6,11 @@ export default async function DebatesPage() {
   const { data: sessao } = await supabase.auth.getClaims();
 
   const [{ data: canais }, { data: membro }] = await Promise.all([
-    supabase.from("canais").select("id, slug, nome, descricao").eq("arquivado", false).order("slug"),
+    supabase
+      .from("canais")
+      .select("id, slug, nome, descricao, criado_por")
+      .eq("arquivado", false)
+      .order("slug"),
     supabase
       .from("membros")
       .select("id, org_id, papel")
@@ -19,9 +23,17 @@ export default async function DebatesPage() {
     ? await supabase.from("membros").select("id, nome").eq("org_id", membro.org_id).eq("ativo", true)
     : { data: [] };
 
+  const canaisUI = (canais ?? []).map((c) => ({
+    id: c.id,
+    slug: c.slug,
+    nome: c.nome,
+    descricao: c.descricao,
+    criadoPor: c.criado_por,
+  }));
+
   return (
     <DebatesClient
-      canais={canais ?? []}
+      canais={canaisUI}
       membros={membrosOrg ?? []}
       meuMembroId={membro?.id ?? null}
       orgId={membro?.org_id ?? null}

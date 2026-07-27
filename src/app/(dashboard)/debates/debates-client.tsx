@@ -2,14 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Hash, Paperclip, ArrowUp, Bookmark, Pencil, Plus } from "lucide-react";
+import { Hash, Paperclip, ArrowUp, Bookmark, Pencil, Plus, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { createClient } from "@/lib/supabase/client";
 import { iniciais } from "@/lib/iniciais";
 import { publicarMensagem } from "@/lib/safe-actions/mensagem-publicar";
 import { editarMensagem } from "@/lib/safe-actions/mensagem-editar";
+import { excluirMensagem } from "@/lib/safe-actions/mensagem-excluir";
 import { guardarNoLivro } from "@/lib/safe-actions/mensagem-guardar-no-livro";
 import { criarCanal } from "@/lib/safe-actions/canal-criar";
+import { editarCanal } from "@/lib/safe-actions/canal-editar";
+import { excluirCanal } from "@/lib/safe-actions/canal-excluir";
 import type { CanalUI, MembroAvatarUI, MensagemUI } from "./tipos";
 
 const JANELA_EDICAO_MS = 15 * 60 * 1000;
@@ -66,6 +69,73 @@ function NovoCanalForm({ orgId }: { orgId: string }) {
   );
 }
 
+function CabecalhoCanal({ canal, souCriador }: { canal: CanalUI; souCriador: boolean }) {
+  const router = useRouter();
+  const [editando, setEditando] = useState(false);
+  const [nome, setNome] = useState(canal.nome);
+  const [descricao, setDescricao] = useState(canal.descricao ?? "");
+
+  const editar = useAction(editarCanal, { onSuccess: () => { router.refresh(); setEditando(false); } });
+  const excluir = useAction(excluirCanal, { onSuccess: () => router.refresh() });
+
+  function salvar(e: FormEvent) {
+    e.preventDefault();
+    if (!nome.trim()) return;
+    editar.execute({ canalId: canal.id, nome: nome.trim(), descricao: descricao.trim() || undefined });
+  }
+
+  function excluirCanalClick() {
+    if (!confirm(`Excluir o canal "${canal.nome}"? Só é possível se ele estiver vazio.`)) return;
+    excluir.execute({ canalId: canal.id });
+  }
+
+  if (editando) {
+    return (
+      <form onSubmit={salvar} style={{ display: "flex", gap: 8, alignItems: "center", flex: 1 }}>
+        <input
+          autoFocus
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          style={{ background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13.5 }}
+        />
+        <input
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value)}
+          placeholder="descrição"
+          style={{ flex: 1, background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13 }}
+        />
+        <button type="submit" className="bt bt--azul bt--min" disabled={editar.isPending}>
+          Salvar
+        </button>
+        <button type="button" className="bt bt--claro bt--min" onClick={() => setEditando(false)}>
+          Cancelar
+        </button>
+        {editar.result.serverError && <span className="min c-vermelho">{editar.result.serverError}</span>}
+      </form>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div>
+        <h2>{canal.nome}</h2>
+        <em>{canal.descricao}</em>
+      </div>
+      {souCriador && (
+        <div style={{ display: "flex", gap: 4 }}>
+          <button className="glifo glifo--min" title="Editar canal" onClick={() => setEditando(true)}>
+            <Pencil size={13} strokeWidth={2.2} />
+          </button>
+          <button className="glifo glifo--min" title="Excluir canal" onClick={excluirCanalClick} disabled={excluir.isPending}>
+            <Trash2 size={13} strokeWidth={2.2} />
+          </button>
+        </div>
+      )}
+      {excluir.result.serverError && <span className="min c-vermelho">{excluir.result.serverError}</span>}
+    </div>
+  );
+}
+
 export function DebatesClient({
   canais,
   membros,
@@ -99,6 +169,9 @@ export function DebatesClient({
   });
   const guardar = useAction(guardarNoLivro, {
     onSuccess: ({ input }) => setGuardadas((atual) => new Set(atual).add(input.mensagemId)),
+  });
+  const excluirMsg = useAction(excluirMensagem, {
+    onSuccess: ({ input }) => setMensagens((atual) => atual.filter((m) => m.id !== input.mensagemId)),
   });
 
   useEffect(() => {
@@ -234,10 +307,7 @@ export function DebatesClient({
 
       <div className="conv__chat">
         <div className="conv__cab">
-          <div>
-            <h2>{canalAtivo.nome}</h2>
-            <em>{canalAtivo.descricao}</em>
-          </div>
+          <CabecalhoCanal key={canalAtivo.id} canal={canalAtivo} souCriador={canalAtivo.criadoPor === meuMembroId} />
           <div className="pilha">
             {membros.map((m) => (
               <span key={m.id} className="ava" title={m.nome}>
@@ -298,6 +368,14 @@ export function DebatesClient({
                       {podeEditar(m) && (
                         <button onClick={() => setEditando({ id: m.id, texto: m.corpo })}>
                           <Pencil size={12} strokeWidth={2.3} /> Editar
+                        </button>
+                      )}
+                      {meu && (
+                        <button
+                          onClick={() => confirm("Excluir esta mensagem?") && excluirMsg.execute({ mensagemId: m.id })}
+                          disabled={excluirMsg.isPending}
+                        >
+                          <Trash2 size={12} strokeWidth={2.3} /> Excluir
                         </button>
                       )}
                     </div>

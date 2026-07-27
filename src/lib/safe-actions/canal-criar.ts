@@ -20,7 +20,7 @@ function slugificar(nome: string) {
 }
 
 // canal.criar — não numerada no master doc (canais nasciam só via seed). RLS
-// (canais_insert_admin) já trava em admin; a checagem aqui só existe pra dar mensagem
+// (canais_write_admin) já trava em admin; a checagem aqui só existe pra dar mensagem
 // amigável em vez do erro cru de RLS.
 export const criarCanal = actionClient
   .metadata({ acao: "canal.criar", entidade: "canais" })
@@ -55,6 +55,7 @@ export const criarCanal = actionClient
         slug,
         nome: parsedInput.nome,
         descricao: parsedInput.descricao ?? null,
+        criado_por: membro.id,
       })
       .select("id")
       .single();

@@ -2,11 +2,15 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle2, Circle, Plus } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Circle, Plus, Pencil, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { concluirEncaminhamento } from "@/lib/safe-actions/encaminhamento-concluir";
 import { marcarReuniao } from "@/lib/safe-actions/reuniao-marcar";
+import { editarReuniao } from "@/lib/safe-actions/reuniao-editar";
+import { excluirReuniao } from "@/lib/safe-actions/reuniao-excluir";
 import { adicionarPauta } from "@/lib/safe-actions/pauta-adicionar";
+import { editarPauta } from "@/lib/safe-actions/pauta-editar";
+import { excluirPauta } from "@/lib/safe-actions/pauta-excluir";
 import { PublicarAtaForm } from "./publicar-ata-form";
 import type { MembroOpcaoUI, ReuniaoUI } from "./tipos";
 
@@ -138,16 +142,96 @@ function EncaminhamentoLinha({ enc }: { enc: ReuniaoUI["encaminhamentos"][number
   );
 }
 
+function ItemPauta({ item, ordem, souAutor }: { item: ReuniaoUI["pauta"][number]; ordem: number; souAutor: boolean }) {
+  const router = useRouter();
+  const [editando, setEditando] = useState(false);
+  const [texto, setTexto] = useState(item.item);
+
+  const editar = useAction(editarPauta, { onSuccess: () => { router.refresh(); setEditando(false); } });
+  const excluir = useAction(excluirPauta, { onSuccess: () => router.refresh() });
+
+  function salvar(e: FormEvent) {
+    e.preventDefault();
+    if (!texto.trim()) return;
+    editar.execute({ pautaItemId: item.id, item: texto.trim() });
+  }
+
+  if (editando) {
+    return (
+      <li className="linha">
+        <span className="ord">{ordem}</span>
+        <form onSubmit={salvar} style={{ display: "flex", gap: 6, flex: 1 }}>
+          <input
+            autoFocus
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            style={{ flex: 1, background: "var(--fill)", borderRadius: 8, padding: "5px 9px", fontSize: 13 }}
+          />
+          <button type="submit" className="bt bt--azul bt--min" disabled={editar.isPending}>
+            Salvar
+          </button>
+          <button type="button" className="bt bt--claro bt--min" onClick={() => setEditando(false)}>
+            Cancelar
+          </button>
+        </form>
+      </li>
+    );
+  }
+
+  return (
+    <li className="linha">
+      <span className="ord">{ordem}</span>
+      <span className="linha__t">{item.item}</span>
+      {souAutor && (
+        <span style={{ display: "flex", gap: 4 }}>
+          <button className="glifo glifo--min" title="Editar" onClick={() => setEditando(true)}>
+            <Pencil size={12} strokeWidth={2.2} />
+          </button>
+          <button
+            className="glifo glifo--min"
+            title="Excluir"
+            onClick={() => confirm("Excluir este item de pauta?") && excluir.execute({ pautaItemId: item.id })}
+            disabled={excluir.isPending}
+          >
+            <Trash2 size={12} strokeWidth={2.2} />
+          </button>
+        </span>
+      )}
+    </li>
+  );
+}
+
 function CartaoReuniao({
   reuniao,
   membros,
+  meuMembroId,
   podeGerir,
 }: {
   reuniao: ReuniaoUI;
   membros: MembroOpcaoUI[];
+  meuMembroId: string;
   podeGerir: boolean;
 }) {
+  const router = useRouter();
   const inicio = new Date(reuniao.inicio);
+  const [editandoReuniao, setEditandoReuniao] = useState(false);
+  const [titulo, setTitulo] = useState(reuniao.titulo);
+  const [tipo, setTipo] = useState(reuniao.tipo);
+
+  const editar = useAction(editarReuniao, { onSuccess: () => { router.refresh(); setEditandoReuniao(false); } });
+  const excluir = useAction(excluirReuniao, { onSuccess: () => router.refresh() });
+  const souAutorReuniao = reuniao.criadoPor === meuMembroId;
+
+  function salvarReuniao(e: FormEvent) {
+    e.preventDefault();
+    if (!titulo.trim()) return;
+    editar.execute({ reuniaoId: reuniao.id, titulo: titulo.trim(), tipo, inicio: reuniao.inicio });
+  }
+
+  function excluirReuniaoClick() {
+    if (!confirm(`Excluir a reunião "${reuniao.titulo}"?`)) return;
+    excluir.execute({ reuniaoId: reuniao.id });
+  }
 
   return (
     <section className={`cart reu ${reuniao.semPauta ? "reu--alerta" : ""}`}>
@@ -156,19 +240,61 @@ function CartaoReuniao({
           <span className="data__m">{MESES[inicio.getUTCMonth()]}</span>
           <span className="data__d">{inicio.getUTCDate()}</span>
         </div>
-        <div className="reu__ti">
-          <h3>{reuniao.titulo}</h3>
-          <em>{reuniao.codigo} · {reuniao.tipo}</em>
-        </div>
+        {editandoReuniao ? (
+          <form onSubmit={salvarReuniao} style={{ display: "flex", gap: 8, flex: 1, alignItems: "center" }}>
+            <input
+              autoFocus
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              style={{ flex: 1, background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13.5 }}
+            />
+            <select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+              style={{ background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13 }}
+            >
+              <option value="Recorrente">Recorrente</option>
+              <option value="Extraordinária">Extraordinária</option>
+            </select>
+            <button type="submit" className="bt bt--azul bt--min" disabled={editar.isPending}>
+              Salvar
+            </button>
+            <button type="button" className="bt bt--claro bt--min" onClick={() => setEditandoReuniao(false)}>
+              Cancelar
+            </button>
+          </form>
+        ) : (
+          <div className="reu__ti" style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+            <div>
+              <h3>{reuniao.titulo}</h3>
+              <em>{reuniao.codigo} · {reuniao.tipo}</em>
+            </div>
+            {souAutorReuniao && !reuniao.ata && (
+              <span style={{ display: "flex", gap: 4 }}>
+                <button className="glifo glifo--min" title="Editar reunião" onClick={() => setEditandoReuniao(true)}>
+                  <Pencil size={13} strokeWidth={2.2} />
+                </button>
+                <button
+                  className="glifo glifo--min"
+                  title="Excluir reunião"
+                  onClick={excluirReuniaoClick}
+                  disabled={excluir.isPending}
+                >
+                  <Trash2 size={13} strokeWidth={2.2} />
+                </button>
+              </span>
+            )}
+          </div>
+        )}
       </div>
+      {(editar.result.serverError || excluir.result.serverError) && (
+        <p className="min c-vermelho">{editar.result.serverError ?? excluir.result.serverError}</p>
+      )}
 
       {reuniao.pauta.length > 0 && (
         <ul className="lista">
           {reuniao.pauta.map((p, i) => (
-            <li key={p.id} className="linha">
-              <span className="ord">{i + 1}</span>
-              <span className="linha__t">{p.item}</span>
-            </li>
+            <ItemPauta key={p.id} item={p} ordem={i + 1} souAutor={!reuniao.ata && p.propostoPor === meuMembroId} />
           ))}
         </ul>
       )}
@@ -207,11 +333,13 @@ export function ReunioesClient({
   reunioes,
   membros,
   orgId,
+  meuMembroId,
   podeGerir,
 }: {
   reunioes: ReuniaoUI[];
   membros: MembroOpcaoUI[];
   orgId: string;
+  meuMembroId: string;
   podeGerir: boolean;
 }) {
   return (
@@ -219,7 +347,7 @@ export function ReunioesClient({
       {podeGerir && <AgendarReuniaoForm orgId={orgId} />}
       {reunioes.length === 0 && <p className="cart lista__vazio">Nenhuma reunião marcada ainda.</p>}
       {reunioes.map((r) => (
-        <CartaoReuniao key={r.id} reuniao={r} membros={membros} podeGerir={podeGerir} />
+        <CartaoReuniao key={r.id} reuniao={r} membros={membros} meuMembroId={meuMembroId} podeGerir={podeGerir} />
       ))}
     </div>
   );

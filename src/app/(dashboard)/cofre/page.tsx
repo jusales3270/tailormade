@@ -17,8 +17,8 @@ export default async function CofrePage() {
   const { data: documentos } = await supabase
     .from("documentos")
     .select(
-      `id, codigo, nome, grupo, status, critico,
-       responsavel:membros(nome),
+      `id, codigo, nome, grupo, status, critico, criado_por,
+       responsavel:membros!responsavel_id(nome),
        versoes:documento_versoes(versao, hash_sha256, enviado_em)`,
     )
     .order("codigo");
@@ -39,6 +39,8 @@ export default async function CofrePage() {
       ultimaVersao: ultima?.versao ?? null,
       ultimoHash: ultima?.hash_sha256 ?? null,
       enviadoEm: ultima?.enviado_em ?? null,
+      souAutor: d.criado_por !== null && d.criado_por === membro?.id,
+      temVersao: (d.versoes ?? []).length > 0,
     };
   });
 
