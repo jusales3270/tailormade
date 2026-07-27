@@ -11,16 +11,18 @@ import Image from "next/image";
 // atraso = atraso do feixe + duração da queda. Não precisa de getBoundingClientRect
 // num intervalo de 50ms (como faria a versão em JS) porque a distância de queda é
 // sempre a altura da tela — dá pra saber o instante do impacto de antemão.
-const QUEDA_MS = 700;
+const QUEDA_MS = 450;
 
+// Último atraso (150) + queda (450) + estouro (350) = 950ms, que é quando o
+// login-form dispara a navegação. Nada fica cortado pela metade.
 const FEIXES = [
   { x: 8, atraso: 0, altura: 56 },
-  { x: 22, atraso: 170, altura: 34 },
-  { x: 35, atraso: 60, altura: 72 },
-  { x: 50, atraso: 250, altura: 44 },
-  { x: 64, atraso: 110, altura: 62 },
-  { x: 78, atraso: 210, altura: 38 },
-  { x: 92, atraso: 40, altura: 50 },
+  { x: 22, atraso: 100, altura: 34 },
+  { x: 35, atraso: 40, altura: 72 },
+  { x: 50, atraso: 150, altura: 44 },
+  { x: 64, atraso: 70, altura: 62 },
+  { x: 78, atraso: 130, altura: 38 },
+  { x: 92, atraso: 20, altura: 50 },
 ] as const;
 
 // 10 partículas por estouro, em leque para cima (dy sempre negativo).

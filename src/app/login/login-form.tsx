@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { TransicaoEntrada } from "@/components/auth/transicao-entrada";
 
-// Casado com a coreografia em globals.css (.auth-transicao): a última animação lá
-// termina aos 1450ms, então navegar aos 1500ms não corta nada pela metade.
-const DURACAO_TRANSICAO_MS = 1500;
+// Instante em que a navegação dispara. Casado com a coreografia em globals.css
+// (.auth-transicao), cuja última animação fecha aos 950ms.
+const DURACAO_TRANSICAO_MS = 950;
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const proximo = searchParams.get("proximo") ?? "/";
   const [email, setEmail] = useState("");
@@ -18,10 +17,9 @@ export function LoginForm() {
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [entrando, setEntrando] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    router.prefetch(proximo);
-  }, [router, proximo]);
+  useEffect(() => () => clearTimeout(timer.current ?? undefined), []);
 
   async function entrar(e: FormEvent) {
     e.preventDefault();
@@ -38,9 +36,18 @@ export function LoginForm() {
     }
 
     setEntrando(true);
-    setTimeout(() => {
-      router.push(proximo);
-      router.refresh();
+
+    // Navegação do próprio navegador, não router.push. Motivo: `proximo` é rota
+    // protegida, e o Router Cache do Next pode ter dela uma resposta obtida enquanto
+    // ninguém estava logado — que é um 307 para /login. O push consumia esse redirecionamento
+    // e a tela ficava parada na logo. Uma navegação de documento ignora esse cache,
+    // refaz a requisição já com o cookie de sessão e ainda garante que todo o estado
+    // do cliente nasça limpo depois da troca de usuário.
+    //
+    // (Pelo mesmo motivo não há router.prefetch aqui: pré-buscar rota protegida antes
+    // do login só serve para gravar esse redirecionamento no cache.)
+    timer.current = setTimeout(() => {
+      window.location.assign(proximo);
     }, DURACAO_TRANSICAO_MS);
   }
 
