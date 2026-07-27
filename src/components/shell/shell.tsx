@@ -16,6 +16,8 @@ import {
   Search,
   Sun,
   Moon,
+  Bell,
+  X,
   Settings,
   LogOut,
   type LucideIcon,
@@ -88,6 +90,9 @@ export function Shell({
   }
 
   const tituloAtual = GRUPOS_NAV.flatMap((g) => g.itens).find((i) => i.href === pathname)?.rot ?? "";
+  // Contador no sino: no celular o painel de avisos fica fechado por padrão, então o
+  // número é a única pista de que há coisa nova para ler.
+  const naoLidos = avisos.filter((a) => !a.lido).length;
 
   return (
     <div className="ap">
@@ -146,10 +151,17 @@ export function Shell({
             >
               {tema === "claro" ? <Moon size={16} strokeWidth={2} /> : <Sun size={16} strokeWidth={2} />}
             </button>
-            <label className="switch" title="Avisos">
-              <input type="checkbox" checked={avisosAbertos} onChange={() => setAvisosAbertos(!avisosAbertos)} />
-              <span />
-            </label>
+            <button
+              type="button"
+              className="glifo glifo--sino"
+              onClick={() => setAvisosAbertos((v) => !v)}
+              title="Avisos"
+              aria-label={`Avisos${naoLidos > 0 ? `, ${naoLidos} não lidos` : ""}`}
+              aria-expanded={avisosAbertos}
+            >
+              <Bell size={16} strokeWidth={2} />
+              {naoLidos > 0 && <span className="glifo__conta">{naoLidos > 9 ? "9+" : naoLidos}</span>}
+            </button>
             <button
               type="button"
               className="ava-bt"
@@ -165,9 +177,25 @@ export function Shell({
           <main className="tela">{children}</main>
 
           {avisosAbertos && (
-            <aside className="insp">
-              <QuadroAvisos avisos={avisos} />
-            </aside>
+            <>
+              <button
+                type="button"
+                className="insp__fundo"
+                onClick={() => setAvisosAbertos(false)}
+                aria-label="Fechar avisos"
+              />
+              <aside className="insp">
+                <button
+                  type="button"
+                  className="glifo glifo--min insp__fechar"
+                  onClick={() => setAvisosAbertos(false)}
+                  aria-label="Fechar avisos"
+                >
+                  <X size={15} />
+                </button>
+                <QuadroAvisos avisos={avisos} />
+              </aside>
+            </>
           )}
         </div>
       </div>

@@ -80,7 +80,10 @@ html {
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  /* `clip` e não `hidden`: hidden cria um contexto de rolagem no elemento, e isso
+     desativa o position:sticky da barra superior no mobile. clip corta igual sem
+     criar o contexto. */
+  overflow-x: clip;
 }
 
 body {
@@ -346,46 +349,6 @@ h3 {
 .glifo--min {
   width: 26px;
   height: 26px;
-}
-.switch {
-  position: relative;
-  width: 40px;
-  height: 24px;
-  flex: 0 0 40px;
-}
-.switch input {
-  position: absolute;
-  opacity: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  cursor: pointer;
-}
-.switch span {
-  position: absolute;
-  inset: 0;
-  background: var(--fill2);
-  border-radius: 12px;
-  transition: 0.2s;
-  pointer-events: none;
-}
-.switch span::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  transition: 0.2s;
-}
-.switch input:checked + span {
-  background: var(--verde);
-}
-.switch input:checked + span::after {
-  transform: translateX(16px);
 }
 .corpo {
   flex: 1;
@@ -933,11 +896,9 @@ h3 {
   font-style: italic;
 }
 
-@media (max-width: 1200px) {
-  .insp {
-    display: none;
-  }
-}
+/* Abaixo de 1200px o inspetor deixa de dividir espaço com o conteúdo e vira gaveta
+   sobreposta (regras no bloco mobile, no fim do arquivo). Antes ele simplesmente
+   sumia — o que tornava os avisos inacessíveis em qualquer tela menor. */
 @media (max-width: 900px) {
   .ap {
     flex-direction: column;
@@ -1879,5 +1840,301 @@ h3 {
 @media (prefers-reduced-motion: reduce) {
   .carregando-painel__giro {
     animation-duration: 1.6s;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Mobile e PWA
+   Fica no fim do arquivo de propósito: a cascata deixa este bloco sobrescrever
+   as regras de desktop sem precisar reescrevê-las.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Sino da barra, com contador de não lidos */
+.glifo--sino {
+  position: relative;
+}
+.glifo__conta {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: var(--vermelho);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Fundo da gaveta: só existe quando o inspetor está sobreposto (mobile/tablet) */
+.insp__fundo {
+  display: none;
+}
+.insp__fechar {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+}
+
+@media (max-width: 1200px) {
+  /* Gaveta: sobrepõe o conteúdo em vez de espremê-lo */
+  .insp__fundo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(0, 0, 0, 0.35);
+    border: none;
+    cursor: pointer;
+  }
+  .insp {
+    position: fixed;
+    z-index: 91;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(340px, 88vw);
+    border-left: 0.5px solid var(--sep);
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.18);
+    padding-top: 46px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    animation: insp-entra 0.18s ease-out;
+  }
+  .insp__fechar {
+    display: flex;
+  }
+}
+@keyframes insp-entra {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .insp {
+    animation: none;
+  }
+}
+
+@media (max-width: 900px) {
+  /* A altura do painel passa a ser a da janela real: 100vh no celular conta a barra
+     do navegador que some ao rolar, e o rodapé fixo ficava fora da tela. */
+  .ap {
+    flex-direction: column;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Navegação vira barra inferior fixa, como em app nativo. Rolável na horizontal
+     porque são oito destinos — não cabem lado a lado numa tela de celular. */
+  .lat {
+    position: fixed;
+    z-index: 80;
+    inset: auto 0 0 0;
+    width: 100%;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 2px;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    border-right: none;
+    border-top: 0.5px solid var(--sep);
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .lat::-webkit-scrollbar {
+    display: none;
+  }
+  /* Marca e agrupamentos não cabem numa barra de oito ícones */
+  .lat__marca,
+  .lat__gt {
+    display: none;
+  }
+  .lat__nav {
+    flex-direction: row;
+    gap: 2px;
+    overflow: visible;
+  }
+  .lat__g {
+    display: flex;
+    gap: 2px;
+  }
+  .lat__rodape {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    flex-direction: row;
+    gap: 2px;
+  }
+  /* Ícone em cima, rótulo embaixo: mantém o texto (some no desktop estreito) e
+     garante alvo de toque de 56px, acima dos 44px recomendados. */
+  .item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    width: auto;
+    min-width: 62px;
+    min-height: 56px;
+    padding: 6px 8px;
+    flex: 0 0 auto;
+  }
+  .item__r {
+    display: block;
+    font-size: 10px;
+    line-height: 1.1;
+    text-align: center;
+    max-width: 62px;
+  }
+  .item__ic {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  /* Barra superior colada no topo, respeitando o notch */
+  .col {
+    min-height: 0;
+  }
+  .barra {
+    position: sticky;
+    top: 0;
+    z-index: 70;
+    height: auto;
+    flex: 0 0 auto;
+    gap: 8px;
+    padding: calc(8px + env(safe-area-inset-top)) 14px 8px;
+  }
+  .barra__t {
+    font-size: 17px;
+  }
+  /* Busca some: ocupava a largura toda e ainda não faz nada */
+  .campo {
+    display: none;
+  }
+
+  .corpo {
+    flex: 1;
+    min-height: 0;
+  }
+  .tela {
+    overflow-y: visible;
+    padding: 16px 14px;
+    /* Espaço para a barra inferior não cobrir o fim do conteúdo */
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+    gap: 14px;
+  }
+
+  /* Títulos e cartões mais compactos */
+  .tit h1 {
+    font-size: 24px;
+  }
+  .tit p {
+    font-size: 13px;
+  }
+  .cart {
+    padding: 14px;
+    border-radius: 12px;
+  }
+  .metricas {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .met {
+    padding: 12px;
+  }
+  .met__v {
+    font-size: 19px;
+  }
+
+  /* Linhas de lista quebram em vez de espremer valor e botão */
+  .linha {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .cart--lista .linha {
+    padding: 12px 14px;
+  }
+
+  /* Alvo de toque mínimo nos controles de ícone */
+  .glifo,
+  .marca,
+  .aviso-item__marca {
+    min-width: 32px;
+    min-height: 32px;
+  }
+  .bt {
+    min-height: 40px;
+    padding: 9px 16px;
+  }
+  .bt--min {
+    min-height: 34px;
+  }
+
+  /* Debates: chat ocupa a tela em vez de duas colunas */
+  .conv {
+    flex-direction: column;
+    margin: -16px -14px calc(-84px - env(safe-area-inset-bottom));
+  }
+  .conv__lista {
+    width: 100%;
+    flex: 0 0 auto;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 0.5px solid var(--sep);
+    padding: 10px;
+  }
+  .conv__chat {
+    min-height: 60vh;
+  }
+  .compo {
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  }
+  .bloco {
+    max-width: 92%;
+  }
+
+  /* Gantt não cabe em tela de celular; a lista da Trilha cobre a mesma informação */
+  .gantt__linha {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: 88vh;
+  }
+  .modal__fundo {
+    padding: 12px;
+    align-items: flex-end;
+  }
+}
+
+/* iOS dá zoom no campo quando a fonte é menor que 16px. Vale para qualquer entrada,
+   inclusive as que usam style inline nos formulários. */
+@media (max-width: 900px) {
+  input,
+  select,
+  textarea,
+  .campo-form input,
+  .compo input {
+    font-size: 16px !important;
+  }
+}
+
+/* Rodando instalado (tela de início): não há barra do navegador, então o conteúdo
+   precisa respeitar as áreas seguras por conta própria. */
+@media (display-mode: standalone) {
+  body {
+    overscroll-behavior-y: none;
   }
 }
