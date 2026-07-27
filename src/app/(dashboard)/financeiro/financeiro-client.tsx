@@ -145,12 +145,12 @@ function LinhaAporte({ aporte, podeGerir, documentos }: { aporte: AporteUI; pode
 
 function LancarMovimentoForm({ orgId, aoFechar }: { orgId: string; aoFechar: () => void }) {
   const router = useRouter();
-  const [codigo, setCodigo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   const [categoria, setCategoria] = useState<string>(CATEGORIAS_MOVIMENTO[0]);
   const [direcao, setDirecao] = useState<"entrada" | "saida">("saida");
   const [competencia, setCompetencia] = useState(() => new Date().toISOString().slice(0, 10));
+  const [erro, setErro] = useState<string | null>(null);
 
   const lancar = useAction(lancarMovimento, {
     onSuccess: () => {
@@ -161,11 +161,20 @@ function LancarMovimentoForm({ orgId, aoFechar }: { orgId: string; aoFechar: () 
 
   function enviar(e: FormEvent) {
     e.preventDefault();
+    setErro(null);
+
+    if (!descricao.trim()) {
+      setErro("Descreva o movimento.");
+      return;
+    }
     const valorCents = Math.round(parseFloat(valor.replace(",", ".")) * 100);
-    if (!codigo.trim() || !descricao.trim() || !valorCents || valorCents <= 0) return;
+    if (!Number.isFinite(valorCents) || valorCents <= 0) {
+      setErro("Informe um valor maior que zero (ex: 150,00).");
+      return;
+    }
+
     lancar.execute({
       orgId,
-      codigo: codigo.trim(),
       descricao: descricao.trim(),
       valorCents,
       categoria: categoria as (typeof CATEGORIAS_MOVIMENTO)[number],
@@ -177,12 +186,6 @@ function LancarMovimentoForm({ orgId, aoFechar }: { orgId: string; aoFechar: () 
   return (
     <form onSubmit={enviar} className="cart" style={{ gap: 8, marginBottom: 12 }}>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <input
-          placeholder="Código (ex: E-019)"
-          value={codigo}
-          onChange={(e) => setCodigo(e.target.value)}
-          style={{ width: 110, background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13 }}
-        />
         <input
           placeholder="Descrição"
           value={descricao}
@@ -223,10 +226,17 @@ function LancarMovimentoForm({ orgId, aoFechar }: { orgId: string; aoFechar: () 
           style={{ background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13 }}
         />
       </div>
-      {lancar.result.serverError && <p className="min c-vermelho">{lancar.result.serverError}</p>}
-      <button type="submit" className="bt bt--azul bt--min" disabled={lancar.isPending} style={{ alignSelf: "flex-start" }}>
-        {lancar.isPending ? "Lançando…" : "Lançar movimento"}
-      </button>
+      {(erro || lancar.result.serverError) && (
+        <p className="min c-vermelho">{erro ?? lancar.result.serverError}</p>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button type="submit" className="bt bt--azul bt--min" disabled={lancar.isPending}>
+          {lancar.isPending ? "Lançando…" : "Lançar movimento"}
+        </button>
+        <button type="button" className="bt bt--claro bt--min" onClick={aoFechar}>
+          Cancelar
+        </button>
+      </div>
     </form>
   );
 }

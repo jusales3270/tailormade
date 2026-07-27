@@ -7,7 +7,6 @@ import { CATEGORIAS_MOVIMENTO } from "@/lib/financeiro/categorias";
 
 const schema = z.object({
   orgId: z.string().uuid(),
-  codigo: z.string().trim().min(1),
   descricao: z.string().trim().min(1),
   valorCents: z.number().int().positive(),
   categoria: z.enum(CATEGORIAS_MOVIMENTO),
@@ -35,11 +34,20 @@ export const lancarMovimento = actionClient
       throw new Error("Só admin ou sócio pode lançar movimentos.");
     }
 
+    // codigo é gerado aqui, não pedido no formulário: era um campo obrigatório que o
+    // usuário tinha que inventar ("E-019"), e esquecer dele fazia o submit não fazer
+    // nada. Mesmo padrão de reuniao.marcar (R-NNN) e documento.criar (DOC-NN).
+    const { count } = await supabase
+      .from("movimentos")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", parsedInput.orgId);
+    const codigo = `E-${String((count ?? 0) + 1).padStart(3, "0")}`;
+
     const { data: movimento, error } = await supabase
       .from("movimentos")
       .insert({
         org_id: parsedInput.orgId,
-        codigo: parsedInput.codigo,
+        codigo,
         descricao: parsedInput.descricao,
         valor_cents: parsedInput.valorCents,
         categoria: parsedInput.categoria,
@@ -63,7 +71,7 @@ export const lancarMovimento = actionClient
       entidadeId: movimento.id,
       antes: null,
       depois: {
-        codigo: parsedInput.codigo,
+        codigo,
         descricao: parsedInput.descricao,
         valorCents: parsedInput.valorCents,
         categoria: parsedInput.categoria,

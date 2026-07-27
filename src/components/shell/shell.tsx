@@ -93,7 +93,7 @@ export function Shell({
   nome: string;
   papel: string | null;
   leituras: Leitura[];
-  resumo: string;
+  resumo: React.ReactNode;
   email: string;
   nomeExibicao: string | null;
   avatarUrl: string | null;

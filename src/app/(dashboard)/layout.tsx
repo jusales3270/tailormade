@@ -1,9 +1,10 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Shell } from "@/components/shell/shell";
+import { ResumoCopiloto } from "@/components/shell/resumo-copiloto";
 import { calcularLeituras } from "@/lib/regras/regras";
 import { calcularCaixaEQueima } from "@/lib/financeiro/derivacao";
-import { narrar } from "@/lib/copiloto/narrar";
 import type { EstadoOrg } from "@/lib/regras/tipos";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -14,9 +15,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/login");
   }
 
-  // user_metadata (nome de exibição pessoal e avatar) não vem nas claims do JWT — só
-  // getUser() traz. É perfil individual, por isso fica fora de `membros` (dado de org).
-  const { data: usuarioData } = await supabase.auth.getUser();
+  // getUser() e a busca do membro são idas independentes à rede — em série custavam o
+  // dobro do RTT em toda navegação. user_metadata (nome de exibição e avatar) não vem
+  // nas claims do JWT, só em getUser(); é perfil individual, por isso fora de `membros`.
+  const [{ data: usuarioData }, { data: membro }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from("membros")
+      .select("nome, papel, org_id")
+      .eq("user_id", sessao.claims.sub)
+      .eq("ativo", true)
+      .maybeSingle(),
+  ]);
+
   const metadata = (usuarioData?.user?.user_metadata ?? {}) as {
     nome_exibicao?: string;
     avatar_path?: string;
@@ -31,13 +42,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .createSignedUrl(metadata.avatar_path, 3600);
     avatarUrl = assinado?.signedUrl ?? null;
   }
-
-  const { data: membro } = await supabase
-    .from("membros")
-    .select("nome, papel, org_id")
-    .eq("user_id", sessao.claims.sub)
-    .eq("ativo", true)
-    .maybeSingle();
 
   if (!membro) {
     return (
@@ -149,14 +153,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
   };
 
   const leituras = calcularLeituras(estado);
-  const resumo = await narrar(leituras);
 
   return (
     <Shell
       nome={membro.nome}
       papel={membro.papel}
       leituras={leituras}
-      resumo={resumo}
+      resumo={
+        <Suspense fallback={<span className="min">Lendo os registros…</span>}>
+          <ResumoCopiloto leituras={leituras} />
+        </Suspense>
+      }
       email={email}
       nomeExibicao={nomeExibicao}
       avatarUrl={avatarUrl}

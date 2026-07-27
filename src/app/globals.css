@@ -335,6 +335,14 @@ h3 {
   background: var(--fill);
   color: var(--tx);
 }
+.glifo:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.glifo:disabled:hover {
+  background: none;
+  color: var(--tx2);
+}
 .glifo--min {
   width: 26px;
   height: 26px;

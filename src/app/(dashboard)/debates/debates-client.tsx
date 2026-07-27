@@ -262,9 +262,15 @@ export function DebatesClient({
     if (e.key === "Enter") enviarMensagem();
   }
 
+  // Congelado na montagem (lazy initializer) em vez de Date.now() no corpo do render:
+  // ler o relógio durante o render é impuro e faz o botão aparecer/sumir de forma
+  // imprevisível a cada re-render. Se a janela vencer com a aba aberta, o botão fica
+  // visível mas SA-02 recusa no servidor com a mensagem dos 15 minutos.
+  const [montadoEm] = useState(() => Date.now());
+
   function podeEditar(m: MensagemUI) {
     if (m.autorId !== meuMembroId) return false;
-    return Date.now() - new Date(m.criadoEm).getTime() < JANELA_EDICAO_MS;
+    return montadoEm - new Date(m.criadoEm).getTime() < JANELA_EDICAO_MS;
   }
 
   function salvarEdicao(e: FormEvent) {

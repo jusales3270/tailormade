@@ -142,7 +142,17 @@ function EncaminhamentoLinha({ enc }: { enc: ReuniaoUI["encaminhamentos"][number
   );
 }
 
-function ItemPauta({ item, ordem, souAutor }: { item: ReuniaoUI["pauta"][number]; ordem: number; souAutor: boolean }) {
+function ItemPauta({
+  item,
+  ordem,
+  souAutor,
+  travado,
+}: {
+  item: ReuniaoUI["pauta"][number];
+  ordem: number;
+  souAutor: boolean;
+  travado: boolean;
+}) {
   const router = useRouter();
   const [editando, setEditando] = useState(false);
   const [texto, setTexto] = useState(item.item);
@@ -184,14 +194,19 @@ function ItemPauta({ item, ordem, souAutor }: { item: ReuniaoUI["pauta"][number]
       <span className="linha__t">{item.item}</span>
       {souAutor && (
         <span style={{ display: "flex", gap: 4 }}>
-          <button className="glifo glifo--min" title="Editar" onClick={() => setEditando(true)}>
+          <button
+            className="glifo glifo--min"
+            title={travado ? "Ata já publicada — a pauta não muda mais" : "Editar"}
+            onClick={() => setEditando(true)}
+            disabled={travado}
+          >
             <Pencil size={12} strokeWidth={2.2} />
           </button>
           <button
             className="glifo glifo--min"
-            title="Excluir"
+            title={travado ? "Ata já publicada — a pauta não muda mais" : "Excluir"}
             onClick={() => confirm("Excluir este item de pauta?") && excluir.execute({ pautaItemId: item.id })}
-            disabled={excluir.isPending}
+            disabled={excluir.isPending || travado}
           >
             <Trash2 size={12} strokeWidth={2.2} />
           </button>
@@ -269,16 +284,32 @@ function CartaoReuniao({
               <h3>{reuniao.titulo}</h3>
               <em>{reuniao.codigo} · {reuniao.tipo}</em>
             </div>
-            {souAutorReuniao && !reuniao.ata && (
+            {souAutorReuniao && (
+              // Com ata publicada os botões continuam visíveis, só desabilitados: sumir
+              // com eles fazia parecer que a funcionalidade não existe, em vez de
+              // explicar que a reunião virou registro e não muda mais.
               <span style={{ display: "flex", gap: 4 }}>
-                <button className="glifo glifo--min" title="Editar reunião" onClick={() => setEditandoReuniao(true)}>
+                <button
+                  className="glifo glifo--min"
+                  title={
+                    reuniao.ata
+                      ? "Ata já publicada — a reunião virou registro e não pode mais ser editada"
+                      : "Editar reunião"
+                  }
+                  onClick={() => setEditandoReuniao(true)}
+                  disabled={!!reuniao.ata}
+                >
                   <Pencil size={13} strokeWidth={2.2} />
                 </button>
                 <button
                   className="glifo glifo--min"
-                  title="Excluir reunião"
+                  title={
+                    reuniao.ata
+                      ? "Ata já publicada — a reunião virou registro e não pode mais ser excluída"
+                      : "Excluir reunião"
+                  }
                   onClick={excluirReuniaoClick}
-                  disabled={excluir.isPending}
+                  disabled={excluir.isPending || !!reuniao.ata}
                 >
                   <Trash2 size={13} strokeWidth={2.2} />
                 </button>
@@ -294,7 +325,13 @@ function CartaoReuniao({
       {reuniao.pauta.length > 0 && (
         <ul className="lista">
           {reuniao.pauta.map((p, i) => (
-            <ItemPauta key={p.id} item={p} ordem={i + 1} souAutor={!reuniao.ata && p.propostoPor === meuMembroId} />
+            <ItemPauta
+              key={p.id}
+              item={p}
+              ordem={i + 1}
+              souAutor={p.propostoPor === meuMembroId}
+              travado={!!reuniao.ata}
+            />
           ))}
         </ul>
       )}
