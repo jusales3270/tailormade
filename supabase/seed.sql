@@ -240,3 +240,52 @@ insert into encaminhamentos (org_id, titulo, responsavel_id, prazo, status, orig
   (uuid_generate_v5(uuid_ns_url(), 'org:tailor-made'), 'Enviar a procuração contábil assinada',       uuid_generate_v5(uuid_ns_url(), 'membro:ana'), '2026-07-18', 'aberto', 'reuniao',   uuid_generate_v5(uuid_ns_url(), 'reuniao:R-011')),
   (uuid_generate_v5(uuid_ns_url(), 'org:tailor-made'), 'Confirmar presença na extraordinária de quinta', uuid_generate_v5(uuid_ns_url(), 'membro:fel'), '2026-07-24', 'aberto', 'canal',     uuid_generate_v5(uuid_ns_url(), 'canal:geral')),
   (uuid_generate_v5(uuid_ns_url(), 'org:tailor-made'), 'Subir o termo de cessão de código',           uuid_generate_v5(uuid_ns_url(), 'membro:teo'), '2026-08-01', 'aberto', 'documento', uuid_generate_v5(uuid_ns_url(), 'doc:DOC-06'));
+
+-- ─────────────────────────── Yuri Camargo (ADMIN EXTERNO) ───────────────────────────
+-- Membro admin adicionado para acesso ao painel com login por email/senha.
+-- O trigger handle_new_auth_user liga automaticamente auth.users → membros.user_id
+-- pelo e-mail, mas como seed.sql controla a ordem dos INSERTs, definimos o user_id
+-- explicitamente aqui para garantir a ligação.
+
+-- 1. Membro na org
+insert into membros (id, org_id, user_id, nome, email, papel, participacao_pct, ativo, entrou_em) values
+  (uuid_generate_v5(uuid_ns_url(), 'membro:yuri'),
+   uuid_generate_v5(uuid_ns_url(), 'org:tailor-made'),
+   uuid_generate_v5(uuid_ns_url(), 'auth:yuri'),
+   'Yuri Camargo',
+   'yuri.camargo@anorth-e.com.br',
+   'admin',
+   0,
+   true,
+   '2026-07-28');
+
+-- 2. Usuário no Supabase Auth (local dev — insert direto em auth.users + auth.identities)
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, created_at, updated_at,
+  confirmation_token, recovery_token, email_change_token_new,
+  raw_app_meta_data, raw_user_meta_data, is_super_admin
+) values (
+  '00000000-0000-0000-0000-000000000000',
+  uuid_generate_v5(uuid_ns_url(), 'auth:yuri'),
+  'authenticated',
+  'authenticated',
+  'yuri.camargo@anorth-e.com.br',
+  crypt('tm1234', gen_salt('bf')),
+  now(), now(), now(),
+  '', '', '',
+  '{"provider":"email","providers":["email"]}',
+  '{"nome":"Yuri Camargo"}',
+  false
+);
+
+insert into auth.identities (
+  id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at
+) values (
+  uuid_generate_v5(uuid_ns_url(), 'auth:yuri'),
+  uuid_generate_v5(uuid_ns_url(), 'auth:yuri'),
+  uuid_generate_v5(uuid_ns_url(), 'auth:yuri'),
+  jsonb_build_object('sub', uuid_generate_v5(uuid_ns_url(), 'auth:yuri')::text, 'email', 'yuri.camargo@anorth-e.com.br'),
+  'email',
+  now(), now(), now()
+);
