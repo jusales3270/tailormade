@@ -243,23 +243,9 @@ insert into encaminhamentos (org_id, titulo, responsavel_id, prazo, status, orig
 
 -- ─────────────────────────── Yuri Camargo (ADMIN EXTERNO) ───────────────────────────
 -- Membro admin adicionado para acesso ao painel com login por email/senha.
--- O trigger handle_new_auth_user liga automaticamente auth.users → membros.user_id
--- pelo e-mail, mas como seed.sql controla a ordem dos INSERTs, definimos o user_id
--- explicitamente aqui para garantir a ligação.
+-- auth.users precisa existir ANTES do INSERT em membros (FK membros_user_id_fkey).
 
--- 1. Membro na org
-insert into membros (id, org_id, user_id, nome, email, papel, participacao_pct, ativo, entrou_em) values
-  (uuid_generate_v5(uuid_ns_url(), 'membro:yuri'),
-   uuid_generate_v5(uuid_ns_url(), 'org:tailor-made'),
-   uuid_generate_v5(uuid_ns_url(), 'auth:yuri'),
-   'Yuri Camargo',
-   'yuri.camargo@anorth-e.com.br',
-   'admin',
-   0,
-   true,
-   '2026-07-28');
-
--- 2. Usuário no Supabase Auth (local dev — insert direto em auth.users + auth.identities)
+-- 1. Usuário no Supabase Auth (local dev — insert direto em auth.users + auth.identities)
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, created_at, updated_at,
@@ -289,3 +275,15 @@ insert into auth.identities (
   'email',
   now(), now(), now()
 );
+
+-- 2. Membro na org (user_id já existe em auth.users)
+insert into membros (id, org_id, user_id, nome, email, papel, participacao_pct, ativo, entrou_em) values
+  (uuid_generate_v5(uuid_ns_url(), 'membro:yuri'),
+   uuid_generate_v5(uuid_ns_url(), 'org:tailor-made'),
+   uuid_generate_v5(uuid_ns_url(), 'auth:yuri'),
+   'Yuri Camargo',
+   'yuri.camargo@anorth-e.com.br',
+   'admin',
+   0,
+   true,
+   '2026-07-28');
