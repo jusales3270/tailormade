@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Hash, Paperclip, ArrowUp, Bookmark, Pencil, Plus, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { createClient } from "@/lib/supabase/client";
-import { iniciais } from "@/lib/iniciais";
 import { Avatar } from "@/components/avatar";
 import { publicarMensagem } from "@/lib/safe-actions/mensagem-publicar";
 import { editarMensagem } from "@/lib/safe-actions/mensagem-editar";
@@ -142,13 +141,13 @@ export function DebatesClient({
   membros,
   meuMembroId,
   orgId,
-  souAdmin,
+  podeCriarCanal,
 }: {
   canais: CanalUI[];
   membros: MembroAvatarUI[];
   meuMembroId: string | null;
   orgId: string | null;
-  souAdmin: boolean;
+  podeCriarCanal: boolean;
 }) {
   const [canalSelecionadoId, setCanalSelecionadoId] = useState<string | null>(null);
   const canalAtivo = canais.find((c) => c.id === canalSelecionadoId) ?? canais[0] ?? null;
@@ -287,7 +286,7 @@ export function DebatesClient({
         <div className="conv__lista">
           <div className="lat__gt">Canais</div>
           <p className="lista__vazio">Nenhum canal ainda.</p>
-          {souAdmin && orgId && <NovoCanalForm orgId={orgId} />}
+          {podeCriarCanal && orgId && <NovoCanalForm orgId={orgId} />}
         </div>
       </div>
     );
@@ -309,7 +308,7 @@ export function DebatesClient({
             <span className="item__r">{c.nome}</span>
           </button>
         ))}
-        {souAdmin && orgId && <NovoCanalForm orgId={orgId} />}
+        {podeCriarCanal && orgId && <NovoCanalForm orgId={orgId} />}
         <p className="conv__nota">Um canal por assunto. Se não cabe em nenhum, ainda não é assunto.</p>
       </div>
 

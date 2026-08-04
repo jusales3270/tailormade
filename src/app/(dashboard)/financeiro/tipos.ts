@@ -21,6 +21,9 @@ export type AporteUI = {
 
 export type DocumentoOpcaoUI = { id: string; codigo: string; nome: string };
 
+// Alimenta o select de aportante no formulário de novo aporte.
+export type MembroOpcaoUI = { id: string; nome: string };
+
 export type MetricasUI = {
   caixaCents: number;
   queimaMediaCents: number;

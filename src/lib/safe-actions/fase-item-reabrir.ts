@@ -10,8 +10,8 @@ const schema = z.object({
 });
 
 // SA-06 (fase_item.reabrir) — master doc §4: "Exige justificativa não vazia". O guard de
-// papel segue o mesmo de SA-05 (responsável da fase ou admin): reabrir é a operação
-// inversa sobre a mesma linha, não faz sentido ter um dono diferente.
+// papel segue o mesmo de SA-05 (sócio, admin ou responsável da fase): reabrir é a
+// operação inversa sobre a mesma linha, não faz sentido ter um dono diferente.
 export const reabrirFaseItem = actionClient
   .metadata({ acao: "fase_item.reabrir", entidade: "fase_itens" })
   .inputSchema(schema)
@@ -40,8 +40,13 @@ export const reabrirFaseItem = actionClient
       throw new Error("Você não é membro ativo desta organização.");
     }
 
-    if (membro.papel !== "admin" && membro.id !== item.fases.responsavel_id) {
-      throw new Error("Só o responsável da fase ou um admin pode reabrir este item.");
+    const podeMexerNaTrilha =
+      membro.papel === "admin" ||
+      membro.papel === "socio" ||
+      membro.id === item.fases.responsavel_id;
+
+    if (!podeMexerNaTrilha) {
+      throw new Error("Só um sócio, um admin ou o responsável da fase pode reabrir este item.");
     }
 
     if (!item.concluido) {

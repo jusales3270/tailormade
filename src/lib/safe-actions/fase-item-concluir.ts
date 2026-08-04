@@ -8,7 +8,12 @@ const schema = z.object({
   faseItemId: z.string().uuid(),
 });
 
-// SA-05 (fase_item.concluir) — master doc §4: "Responsável da fase ou admin".
+// SA-05 (fase_item.concluir) — o master doc §4 dizia "responsável da fase ou admin".
+// Revisado em 04/08/2026: sócio também conclui, seja ou não o responsável. Motivo: em
+// produção as 8 fases estavam todas com o mesmo responsável, então na prática um único
+// membro conseguia mexer na Trilha e os demais sócios viam "só o responsável da fase ou
+// um admin pode concluir este item" em todo item. responsavel_id continua sendo de quem
+// é a cobrança, não um cadeado.
 // Primeira Safe Action do projeto: estabelece o padrão (schema, guard, mutação com a
 // sessão do usuário, auditoria pelo admin client) que as próximas 27 vão repetir.
 export const concluirFaseItem = actionClient
@@ -39,8 +44,13 @@ export const concluirFaseItem = actionClient
       throw new Error("Você não é membro ativo desta organização.");
     }
 
-    if (membro.papel !== "admin" && membro.id !== item.fases.responsavel_id) {
-      throw new Error("Só o responsável da fase ou um admin pode concluir este item.");
+    const podeMexerNaTrilha =
+      membro.papel === "admin" ||
+      membro.papel === "socio" ||
+      membro.id === item.fases.responsavel_id;
+
+    if (!podeMexerNaTrilha) {
+      throw new Error("Só um sócio, um admin ou o responsável da fase pode concluir este item.");
     }
 
     if (item.concluido) {

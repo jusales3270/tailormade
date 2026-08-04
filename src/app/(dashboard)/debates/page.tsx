@@ -38,7 +38,7 @@ export default async function DebatesPage() {
       membros={(membrosOrg ?? []).map((m) => ({ id: m.id, nome: m.nome, avatarUrl: urlAvatar(m.avatar_path) }))}
       meuMembroId={membro?.id ?? null}
       orgId={membro?.org_id ?? null}
-      souAdmin={membro?.papel === "admin"}
+      podeCriarCanal={membro?.papel === "admin" || membro?.papel === "socio"}
     />
   );
 }

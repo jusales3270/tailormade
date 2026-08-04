@@ -3,17 +3,19 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle, Trash2 } from "lucide-react";
 import { concluirFaseItem } from "@/lib/safe-actions/fase-item-concluir";
 import { reabrirFaseItem } from "@/lib/safe-actions/fase-item-reabrir";
+import { excluirFaseItem } from "@/lib/safe-actions/fase-item-excluir";
 import type { FaseItemUI } from "./tipos";
 
-export function ItemLinha({ item }: { item: FaseItemUI }) {
+export function ItemLinha({ item, podeGerir }: { item: FaseItemUI; podeGerir: boolean }) {
   const router = useRouter();
   const [motivoAberto, setMotivoAberto] = useState(false);
   const [motivo, setMotivo] = useState("");
 
   const concluir = useAction(concluirFaseItem, { onSuccess: () => router.refresh() });
+  const excluir = useAction(excluirFaseItem, { onSuccess: () => router.refresh() });
   const reabrir = useAction(reabrirFaseItem, {
     onSuccess: () => {
       router.refresh();
@@ -26,6 +28,11 @@ export function ItemLinha({ item }: { item: FaseItemUI }) {
     e.preventDefault();
     if (!motivo.trim()) return;
     reabrir.execute({ faseItemId: item.id, justificativa: motivo.trim() });
+  }
+
+  function excluirClick() {
+    if (!confirm(`Remover o item "${item.titulo}" da trilha?`)) return;
+    excluir.execute({ faseItemId: item.id });
   }
 
   if (!item.concluido) {
@@ -41,6 +48,17 @@ export function ItemLinha({ item }: { item: FaseItemUI }) {
         </button>
         <span className="linha__t">{item.titulo}</span>
         {concluir.result.serverError && <span className="min c-vermelho">{concluir.result.serverError}</span>}
+        {excluir.result.serverError && <span className="min c-vermelho">{excluir.result.serverError}</span>}
+        {podeGerir && (
+          <button
+            className="glifo glifo--min"
+            title="Remover item"
+            onClick={excluirClick}
+            disabled={excluir.isPending}
+          >
+            <Trash2 size={13} strokeWidth={2.2} />
+          </button>
+        )}
       </li>
     );
   }

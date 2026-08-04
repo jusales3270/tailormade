@@ -23,7 +23,7 @@ export default async function FinanceiroPage() {
     return <Titulo t="Financeiro" s="Perfil técnico não acessa dados financeiros." />;
   }
 
-  const [{ data: aportes }, { data: movimentos }, { data: documentos }] = await Promise.all([
+  const [{ data: aportes }, { data: movimentos }, { data: documentos }, { data: membros }] = await Promise.all([
     supabase
       .from("aportes")
       .select("id, comprometido_cents, membro:membros(nome), eventos:aporte_eventos(valor_cents)")
@@ -37,6 +37,7 @@ export default async function FinanceiroPage() {
       .eq("org_id", membro.org_id)
       .order("codigo", { ascending: false }),
     supabase.from("documentos").select("id, codigo, nome").eq("org_id", membro.org_id).order("codigo"),
+    supabase.from("membros").select("id, nome").eq("org_id", membro.org_id).eq("ativo", true).order("nome"),
   ]);
 
   const aportesUI: AporteUI[] = (aportes ?? []).map((a) => ({
@@ -97,6 +98,7 @@ export default async function FinanceiroPage() {
         aportes={aportesUI}
         movimentos={movimentosUI}
         documentos={documentosUI}
+        membros={(membros ?? []).map((m) => ({ id: m.id, nome: m.nome }))}
       />
     </>
   );

@@ -20,7 +20,7 @@ function slugificar(nome: string) {
 }
 
 // canal.criar — não numerada no master doc (canais nasciam só via seed). RLS
-// (canais_write_admin) já trava em admin; a checagem aqui só existe pra dar mensagem
+// (canais_write) já trava em admin/socio; a checagem aqui só existe pra dar mensagem
 // amigável em vez do erro cru de RLS.
 export const criarCanal = actionClient
   .metadata({ acao: "canal.criar", entidade: "canais" })
@@ -39,8 +39,8 @@ export const criarCanal = actionClient
     if (!membro) {
       throw new Error("Você não é membro ativo desta organização.");
     }
-    if (membro.papel !== "admin") {
-      throw new Error("Só admin cria canais.");
+    if (membro.papel !== "admin" && membro.papel !== "socio") {
+      throw new Error("Só admin ou sócio criam canais.");
     }
 
     const slug = slugificar(parsedInput.nome);

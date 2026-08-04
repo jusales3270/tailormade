@@ -6,9 +6,17 @@ import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { lancarMovimento } from "@/lib/safe-actions/movimento-lancar";
 import { registrarIntegralizacao } from "@/lib/safe-actions/aporte-registrar-integralizacao";
+import { criarAporte } from "@/lib/safe-actions/aporte-criar";
 import { CATEGORIAS_MOVIMENTO } from "@/lib/financeiro/categorias";
 import { brl } from "@/lib/formatar";
-import type { AporteUI, DocumentoOpcaoUI, MetricasUI, MovimentoUI, StatusMovimento } from "./tipos";
+import type {
+  AporteUI,
+  DocumentoOpcaoUI,
+  MembroOpcaoUI,
+  MetricasUI,
+  MovimentoUI,
+  StatusMovimento,
+} from "./tipos";
 
 const STATUS_MOVIMENTO: Record<StatusMovimento, { rot: string; cor: string }> = {
   previsto: { rot: "Previsto", cor: "cinza" },
@@ -142,6 +150,88 @@ function LinhaAporte({ aporte, podeGerir, documentos }: { aporte: AporteUI; pode
   );
 }
 
+function NovoAporteForm({
+  orgId,
+  membros,
+  aoFechar,
+}: {
+  orgId: string;
+  membros: MembroOpcaoUI[];
+  aoFechar: () => void;
+}) {
+  const router = useRouter();
+  const [membroId, setMembroId] = useState(membros[0]?.id ?? "");
+  const [valor, setValor] = useState("");
+  const [prazo, setPrazo] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+
+  const criar = useAction(criarAporte, {
+    onSuccess: () => {
+      router.refresh();
+      aoFechar();
+    },
+  });
+
+  function enviar(e: FormEvent) {
+    e.preventDefault();
+    setErro(null);
+
+    if (!membroId) {
+      setErro("Escolha o sócio que está se comprometendo.");
+      return;
+    }
+    const comprometidoCents = Math.round(parseFloat(valor.replace(".", "").replace(",", ".")) * 100);
+    if (!Number.isFinite(comprometidoCents) || comprometidoCents <= 0) {
+      setErro("Informe um valor maior que zero (ex: 50.000,00).");
+      return;
+    }
+
+    criar.execute({ orgId, membroId, comprometidoCents, prazo: prazo || null });
+  }
+
+  return (
+    <form onSubmit={enviar} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <select
+          value={membroId}
+          onChange={(e) => setMembroId(e.target.value)}
+          style={{ flex: 1, minWidth: 140, background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13 }}
+        >
+          {membros.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.nome}
+            </option>
+          ))}
+        </select>
+        <input
+          placeholder="Comprometido (R$)"
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+          style={{ width: 140, background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13 }}
+        />
+        <input
+          type="date"
+          title="Prazo para integralizar"
+          value={prazo}
+          onChange={(e) => setPrazo(e.target.value)}
+          style={{ background: "var(--fill)", borderRadius: 8, padding: "6px 10px", fontSize: 13 }}
+        />
+      </div>
+      {(erro || criar.result.serverError) && (
+        <p className="min c-vermelho">{erro ?? criar.result.serverError}</p>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button type="submit" className="bt bt--azul bt--min" disabled={criar.isPending}>
+          {criar.isPending ? "Declarando…" : "Declarar aporte"}
+        </button>
+        <button type="button" className="bt bt--claro bt--min" onClick={aoFechar}>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  );
+}
+
 function LancarMovimentoForm({ orgId, aoFechar }: { orgId: string; aoFechar: () => void }) {
   const router = useRouter();
   const [descricao, setDescricao] = useState("");
@@ -267,6 +357,7 @@ export function FinanceiroClient({
   aportes,
   movimentos,
   documentos,
+  membros,
 }: {
   orgId: string;
   podeGerir: boolean;
@@ -274,8 +365,10 @@ export function FinanceiroClient({
   aportes: AporteUI[];
   movimentos: MovimentoUI[];
   documentos: DocumentoOpcaoUI[];
+  membros: MembroOpcaoUI[];
 }) {
   const [abrirLancar, setAbrirLancar] = useState(false);
+  const [abrirAporte, setAbrirAporte] = useState(false);
 
   return (
     <>
@@ -284,10 +377,23 @@ export function FinanceiroClient({
         <section className="cart">
           <div className="cart__cab">
             <h2>Aportes por sócio</h2>
+            {podeGerir && !abrirAporte && (
+              <button className="bt bt--claro bt--min" onClick={() => setAbrirAporte(true)}>
+                <Plus size={13} strokeWidth={2.6} /> Declarar
+              </button>
+            )}
           </div>
+          {aportes.length === 0 && !abrirAporte && (
+            <p className="min">
+              Nenhum aporte declarado. Registre o capital que cada sócio se comprometeu a integralizar.
+            </p>
+          )}
           {aportes.map((a) => (
             <LinhaAporte key={a.id} aporte={a} podeGerir={podeGerir} documentos={documentos} />
           ))}
+          {abrirAporte && (
+            <NovoAporteForm orgId={orgId} membros={membros} aoFechar={() => setAbrirAporte(false)} />
+          )}
         </section>
 
         <section className="cart cart--lista">
